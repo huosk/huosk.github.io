@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="3D中的方位与角位移在三维空间中，描述物体的旋转状态有多种方式，这些方式中，可能选取的参考坐标系不同、也可能选取的基向量不同，或者是采用的数学表达方式不同，等等，这些差异就造成理解三维旋转比较困难。本文通过梳理常见旋转描述方式，希望能够帮助理解三维空间中的角位移。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="欧拉角">
+<meta property="og:url" content="https://huosk.github.io/2019/01/02/eulerandgimballock/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="3D中的方位与角位移在三维空间中，描述物体的旋转状态有多种方式，这些方式中，可能选取的参考坐标系不同、也可能选取的基向量不同，或者是采用的数学表达方式不同，等等，这些差异就造成理解三维旋转比较困难。本文通过梳理常见旋转描述方式，希望能够帮助理解三维空间中的角位移。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/01/02/eulerandgimballock/matrixrot.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/02/eulerandgimballock/01.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/02/eulerandgimballock/heading.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/02/eulerandgimballock/pitch.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/02/eulerandgimballock/bank.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/02/eulerandgimballock/complexnumber.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/02/eulerandgimballock/axisprod.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.723Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="欧拉角">
+<meta name="twitter:description" content="3D中的方位与角位移在三维空间中，描述物体的旋转状态有多种方式，这些方式中，可能选取的参考坐标系不同、也可能选取的基向量不同，或者是采用的数学表达方式不同，等等，这些差异就造成理解三维旋转比较困难。本文通过梳理常见旋转描述方式，希望能够帮助理解三维空间中的角位移。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/01/02/eulerandgimballock/matrixrot.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/01/02/eulerandgimballock/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>欧拉角 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/01/02/eulerandgimballock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">欧拉角
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-01-02 15:37:27" itemprop="dateCreated datePublished" datetime="2019-01-02T15:37:27+08:00">2019-01-02</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数学/" itemprop="url" rel="index"><span itemprop="name">数学</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="3D中的方位与角位移"><a href="#3D中的方位与角位移" class="headerlink" title="3D中的方位与角位移"></a>3D中的方位与角位移</h1><p>在三维空间中，描述物体的旋转状态有多种方式，这些方式中，可能选取的参考坐标系不同、也可能选取的基向量不同，或者是采用的数学表达方式不同，等等，这些差异就造成理解三维旋转比较困难。本文通过梳理常见旋转描述方式，希望能够帮助理解三维空间中的角位移。<br><a id="more"></a></p>
+<h2 id="坐标系选择"><a href="#坐标系选择" class="headerlink" title="坐标系选择"></a>坐标系选择</h2><p>当我们描述一个物体的坐标时，首先需要选定参考坐标系，通常是世界坐标系的原点；同样的，我们在描述一个物体的旋转时，也需要选定一个参考坐标系，这里通常选择惯性坐标系。</p>
+<blockquote>
+<p><strong>惯性坐标系</strong>：惯性坐标系的原点与物体坐标系重合，但是坐标轴与世界坐标系平行。<br><strong>为什么引入惯性坐标系</strong>：惯性坐标系到物体坐标系只需要进行旋转，惯性坐标系到世界坐标系是需要平移，将世界坐标系到物体坐标系的转换过程分解为两个步骤进行，能够简化问题。</p>
+</blockquote>
+<h2 id="旋转变换表示"><a href="#旋转变换表示" class="headerlink" title="旋转变换表示"></a>旋转变换表示</h2><p>在选定好参考坐标系之后，就需要确定，从参考坐标系（惯性坐标系）到物体坐标系之间的变换如何表示，这里通常有三种方式：</p>
+<ul>
+<li>矩阵</li>
+<li>欧拉角</li>
+<li>四元数</li>
+</ul>
+<p>这三种方式有个优略，对于各个游戏引擎来说，针对不同的使用场景可以选取不同的表示方式。下面就针对这三种方式，进行详细分析比较，来加深对旋转的理解。</p>
+<h2 id="矩阵表示旋转"><a href="#矩阵表示旋转" class="headerlink" title="矩阵表示旋转"></a>矩阵表示旋转</h2><p>构建旋转矩阵的关键在于，计算旋转矩阵的基向量，得到基向量之后，就可以组成旋转矩阵，该矩阵的意义表示从一个坐标系到目标坐标系的旋转。光看描述可能还是比较难理解，看一个具体的例子，为了简化问题，这里只进行绕$y$轴的旋转。</p>
+<img src="/2019/01/02/eulerandgimballock/matrixrot.png">
+<p>很容易计算得到三个基向量：</p>
+<script type="math/tex; mode=display">\left\{
+\begin{aligned}
+x & = & (0.87,0,-0.5) \\
+y & = & (0,1,0) \\
+z & = & (0.5,0,0.87)
+\end{aligned}
+\right.</script><p>对应的旋转矩阵为：</p>
+<script type="math/tex; mode=display">
+ \left[
+ \begin{matrix}
+   0.87 & 0 & -0.5 \\
+   0 & 1 & 0 \\
+   0.5 & 0 & 0.87
+  \end{matrix}
+  \right]\tag{M}</script><p>该矩阵就表示从参考坐标系（惯性坐标系）到目标坐标系（物体坐标系）的旋转变换，参考坐标系中的任意向量$v$，都可以通过与矩阵相乘$(v*M)$，得到旋转之后的向量。</p>
+<p>通过上面例子可以看到矩阵表示旋转的一些优缺点，总结如下：</p>
+<p>优点：</p>
+<ul>
+<li>不需要关注旋转的顺序，因为整个矩阵就是一个整体，直接乘以该矩阵，就可以实现向量的旋转。</li>
+<li>利用矩阵的逆矩阵，可以实现旋转的撤销（反向旋转）。</li>
+<li>可以合并多个旋转矩阵，矩阵$M_1$表示坐标系A 到 B 的旋转，矩阵$M_2$坐标系 B 到 C 的旋转，那么矩阵$M_1 * M_2$表示A 到 C 的旋转。</li>
+<li>最后一点是图形 API 都采用矩阵的形式来表示旋转。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>矩阵的表示形式比较浪费内存，矩阵使用 9 个参数来表示，和后面介绍的<em>欧拉角</em>和<em>四元数</em>来说，内存占用比较高。</li>
+<li>矩阵难以使用，给定一个矩阵之后，并不能直观的知道矩阵表示一个怎样的旋转。</li>
+<li>矩阵可能是病态的，旋转矩阵为正交矩阵，在变换的过程中，可能由于浮点数的精度问题，导致“矩阵蠕变”，从而导致病态矩阵。</li>
+</ul>
+<h2 id="欧拉角表示"><a href="#欧拉角表示" class="headerlink" title="欧拉角表示"></a>欧拉角表示</h2><p>欧拉角的基本思想是将旋转分解为，绕三个相互垂直轴的旋转组成的序列。这句话读起来非常拗口，其实非常易于理解。注意到定义中的几个要点，首先是三个绕垂直轴旋转的分量，这三个轴可以是任意的三个轴，但是通常选择笛卡尔坐标系比较有意义；其次是三个分量的顺序，这里也没有进行规定，因此可以是任意的顺序，其中有些顺序比较常用，因此人们为它起了名字，比如“head-pitch-bank”、“roll-pitch-yaw”等等。</p>
+<p>通过例子来看下”head-pitch-bank”是如何进行旋转的。</p>
+<ul>
+<li>初始时，物体坐标系与惯性坐标系重合，红色-X轴、绿色-Y轴、蓝色-Z轴。</li>
+</ul>
+<img src="/2019/01/02/eulerandgimballock/01.png">
+<ul>
+<li>首先进行Heading 旋转，heading 为绕 y 轴的旋转分量，根据左手定则进行旋转 45 度。</li>
+</ul>
+<img src="/2019/01/02/eulerandgimballock/heading.png">
+<ul>
+<li>然后进行Pitch 旋转，Pitch 为绕 x 轴的旋转分量，需要注意的是，<strong>这里的 x 轴选取的是物体坐标系的 x 轴，而非惯性坐标系。</strong></li>
+</ul>
+<img src="/2019/01/02/eulerandgimballock/pitch.png">
+<ul>
+<li>最后是进行Bank 旋转，Bank 是绕 z 轴的旋转分量，同样的，<strong>这里的 z 轴是物体坐标系的 z 轴，而非惯性坐标的 z 轴</strong>。</li>
+</ul>
+<img src="/2019/01/02/eulerandgimballock/bank.png">
+<h3 id="其他欧拉角旋转方式"><a href="#其他欧拉角旋转方式" class="headerlink" title="其他欧拉角旋转方式"></a>其他欧拉角旋转方式</h3><p>在前面提到，欧拉角的轴和旋转顺序的选取多种多样，“Head-pitch-bank” 只是其中的一种，还有一种比较常见的旋转方式为“Roll-pitch-yaw”，其中roll 为绕 z 旋转的分量，pitch 为绕 x 轴旋转的分量，yaw 为绕 y 轴旋转的分量，Unity3D 中就采用这种欧拉角约定。</p>
+<p>如果需要在两种不同约定之间进行转换，最简单的方式是通过矩阵。</p>
+<h3 id="欧拉角的优缺点"><a href="#欧拉角的优缺点" class="headerlink" title="欧拉角的优缺点"></a>欧拉角的优缺点</h3><p>优点：</p>
+<ul>
+<li>很容易使用，从上面例子就可以看到，欧拉角非常的直观，并且符合人类思维方式。</li>
+<li>描述简洁，欧拉角只需要三个参数，就能够描述一个旋转。</li>
+<li>任意三个数都是合法的欧拉角</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>别名问题，即给定一个方位，有多种欧拉角可以描述它<ul>
+<li>最常见的是任意角度加上$360^o$，都等于它自身。</li>
+<li>另一个别名问题是，$pitch135^o$ 等价于$heading180^o、pitch45^o、bank180^o$。</li>
+<li>最著名的别名问题是，先$heading45^o、pitch90^o$ 等价于$pitch90^o、bank45^o$，事实上只要第二个旋转轴旋转${\pm}90^o$，那么第一个轴就会和第三个轴重合，这种现象称为“万象锁”。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>解决别名问题，一般通过限制各个旋转分量的范围，比如对于“heading-pitch-bank”约定来说：<br>heading、bank限定在 $-180^o\sim180^o$，pitch限定在$-90^o\sim90^o$。<br>“万象锁”解决办法：$当pitch=\pm90^o时，bank=0^o$</p>
+</blockquote>
+<ul>
+<li>欧拉角的第二个问题是，两个角度之间的插值非常困难。在开发中，经常需要将摄像机平滑的进行旋转，比如从旋转 $\theta_0$ 插值到旋转 $\theta_1$，根据线性插值公式</li>
+</ul>
+<script type="math/tex; mode=display">
+\Delta\theta=\theta_1-\theta_0\\
+\theta_t=\theta_0+t*\Delta\theta</script><p>插值可能会存在很多问题，<strong>如果欧拉角没有进行限制</strong>，将得到很大角度差，假设 $\theta_0=45^o，\theta_1=720^o$，因为720 = 360*2 + 0，所以$\theta_0、\theta_1$两个角度之间只相差$45^o$，但是根据线性插值公式计算，$\Delta\theta=\theta_1-\theta_0=675^o$，旋转了将近两周！解决这个问题的方法就是采用上面的角度限制方法，对欧拉角进行限定。</p>
+<p>然而，即使对角度进行了限定，仍然不能完全解决插值问题，这是由于旋转角度的周期性引起的。看下例子，$假设\theta_1=170^o、\theta_0=-170^o$，值都在限定的范围内，但是插值的结果仍然是不正确的，旋转沿着长弧旋转了$340^o$，而非短弧旋转的$20^o$。解决该问题的方法是将 $\Delta\theta$ 限制到$-180^o\sim180^o$，公式为：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+wrap(x) &= x-360^o*\left [ \left ( x+180^o \right )/360^o \right ]\\
+\Delta\theta &= wrap(\theta_1-\theta_0)\\
+\theta_t &= \theta_0+t*\Delta\theta
+\end{aligned}</script><p>然而，即使有了这两个限定，仍然会遇到“万向锁”问题，插值的前两个问题可以通过角度限定来解决，但是“万向锁”是一个底层的问题，目前来说没有办法来解决它。</p>
+<h2 id="四元数表示"><a href="#四元数表示" class="headerlink" title="四元数表示"></a>四元数表示</h2><p>前面介绍了旋转的矩阵和欧拉角表示方法，也介绍了这两种方式的优缺点，下面介绍第三种旋转的表示方法-四元数，它在一定程度上集中了矩阵和欧拉角的有点，它采用4个参数来表示，并且能够解决欧拉角中的“万向锁”问题，下面就详细的了解一下四元数。</p>
+<h3 id="复数"><a href="#复数" class="headerlink" title="复数"></a>复数</h3><p>在正式介绍四元数之前，还是需要先介绍一下复数，复数对$(a,b)$表示$a+bi$,其中$a$称作实部，$b$称作虚部，$i$为虚数，满足$i^2 = -1$。下面可能采用$(a,b)$和$a+bi$两种表达形式，两者是等价的。</p>
+<h4 id="复数性质"><a href="#复数性质" class="headerlink" title="复数性质"></a>复数性质</h4><p>对于复数$a+bi$，它具备如下性质：</p>
+<ul>
+<li>复数相加：$(a+bi)+(c+di) = (a+c)+(b+d)i$</li>
+<li>复数相减: $(a+bi)-(c+di) = (a-c)+(b-d)i$</li>
+<li>复数相乘:</li>
+</ul>
+<script type="math/tex; mode=display">
+\begin{aligned}
+(a+bi)*(c+di) &= ac + bci + adi + bdi^2\\
+&= ac + (bc+ad)i - bd\\
+&= (ac - bd) + (bc + ad)i
+\end{aligned}</script><ul>
+<li>共轭：复数的共轭就是让虚部变负，即$p=a+bi$的共轭复数为${p}^*=a-bi$。</li>
+<li>模：</li>
+</ul>
+<script type="math/tex; mode=display">
+||p|| = \sqrt{p*{p}^*} = \sqrt{a^2+b^2}</script><h4 id="复数的几何意义"><a href="#复数的几何意义" class="headerlink" title="复数的几何意义"></a>复数的几何意义</h4><p>复数包括<strong>实部</strong>和<strong>虚部</strong>两部分，如果把实部当作横轴、虚部当作纵轴，这样复数就能表示平面内的任意点，如果把该点到原点的向量，当作是横轴正向旋转一定角度后的结果，那么复数就可以表示旋转！</p>
+<p>如下图所示，复数$p = \cos\alpha +i*\sin\alpha$，它表示的旋转角为$\alpha$。</p>
+<img src="/2019/01/02/eulerandgimballock/complexnumber.png">
+<h4 id="扩展复数"><a href="#扩展复数" class="headerlink" title="扩展复数"></a>扩展复数</h4><p>我们知道，一个物体在三维空间的方位，都能通过物体绕轴旋转一个角度来达到。那么既然复数能够表示二维空间的旋转角度，那么能不能扩展到三维空间呢，这个问题也困扰了数学家们很久，直到1843年，爱尔兰数学家$William Hamilton$ 才解决这个问题，这就产生了四元数的概念，他通过采用三个虚部来实现3D空间旋转的表示，即四元数$\left [ w,\left ( x,y,z \right ) \right ] w,x,y,z \in \mathbb{R}$定义了复数 $w + xi + yj + zk$，其中$i,j,k$的关系如下：</p>
+<script type="math/tex; mode=display">
+\begin{cases}
+i^2 = j^2 = k^2 = ijk = -1\\
+ij = k, ji = -k\\
+jk = i, kj = -i\\
+ki = j, ik = -j
+\end{cases}\tag{1}</script><p>可以看到，i、j、k之间的关系，既保留了复数的性质，同时，和笛卡尔坐标系的三个基坐标轴的叉乘关系非常像，对比下图（右手坐标系）。</p>
+<script type="math/tex; mode=display">
+x\times y = z,y\times x = -z\\
+y\times z = x,z\times y = -x\\
+z\times x = y,x\times z = -y\\</script><img src="/2019/01/02/eulerandgimballock/axisprod.png">
+<h3 id="四元数相关的性质"><a href="#四元数相关的性质" class="headerlink" title="四元数相关的性质"></a>四元数相关的性质</h3><h4 id="四元数的表示形式"><a href="#四元数的表示形式" class="headerlink" title="四元数的表示形式"></a>四元数的表示形式</h4><p>四元数是复数的一种扩展形式，很多复数的性质，四元数也都满足。在介绍四元数性质之前，再重复一下四元数的表示形式，这两种形式都是等价的，只不过复数形式方便进行计算，向量的表示便于记忆和书写：</p>
+<ul>
+<li>向量表示形式：$q=\left [ w,\vec{v} \right]$或者$q=\left [ w,\left ( x,y,z \right ) \right ]$</li>
+<li>复数表示形式：$q=w + xi + yj + zk$</li>
+</ul>
+<h4 id="实四元数与纯四元数"><a href="#实四元数与纯四元数" class="headerlink" title="实四元数与纯四元数"></a>实四元数与纯四元数</h4><p>实四元数是所有虚部向量为零向量的四元数：</p>
+<ul>
+<li>向量形式：$q=[w,(0,0,0)],或者q=[w,0]$</li>
+<li>复数形式：$q=w+0i+0j+0k=w$，可以看到实数可以写成实四元数的形式！</li>
+</ul>
+<p>纯四元数是实部为零的四元数：</p>
+<ul>
+<li>向量形式:$q=[0,(x,y,z)]$</li>
+<li>复数形式:$q=xi+yj+zk$</li>
+</ul>
+<h4 id="单位四元数"><a href="#单位四元数" class="headerlink" title="单位四元数"></a>单位四元数</h4><p>在向量中，任何向量都可以用长度和单位向量方向来表示：$\vec{v}=l*\vec{n}$，其中$l=|\vec{v}|$,$\vec{n}$是$\vec{v}$同方向的单位向量$|\vec{n}|=1$。</p>
+<h4 id="四元数加法"><a href="#四元数加法" class="headerlink" title="四元数加法"></a>四元数加法</h4><script type="math/tex; mode=display">\begin{aligned}
+{q}_1 &= \left [ w_1,\vec{v}_1 \right]\\
+{q}_2 &= \left [ w_2,\vec{v}_2 \right]\\
+{q}_1+{q}_2 &= \left [ w_1+w_2,\vec{v}_1+\vec{v}_2 \right]\\
+{q}_1-{q}_2 &= \left [ w_1-w_2,\vec{v}_1-\vec{v}_2 \right]
+\end{aligned}</script><h4 id="四元数的系数缩放"><a href="#四元数的系数缩放" class="headerlink" title="四元数的系数缩放"></a>四元数的系数缩放</h4><ul>
+<li>向量表示形式：</li>
+</ul>
+<script type="math/tex; mode=display">
+\begin{aligned}
+{q} &= \left [ w,\vec{v} \right]\\
+\lambda{q} &= \left [ \lambda{w},\lambda\vec{v} \right],\lambda \in R\\
+\end{aligned}</script><ul>
+<li>复数表示形式：</li>
+</ul>
+<script type="math/tex; mode=display">
+\begin{aligned}
+{q} &= w + xi + yj + zk\\
+\lambda{q} &= \lambda{w} + \lambda{x}{i} + \lambda{y}{j} + \lambda{z}{k}
+\end{aligned}</script><h4 id="四元数的乘法（叉乘）"><a href="#四元数的乘法（叉乘）" class="headerlink" title="四元数的乘法（叉乘）"></a>四元数的乘法（叉乘）</h4><p>有两个四元数:${q}_1、{q}_2$，计算它们的乘积:  </p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+{q}_1 &= \left [ w_1,\vec{v}_1 \right]\\
+{q}_2 &= \left [ w_2,\vec{v}_2 \right]\\
+
+其中:\\
+\vec{v}_1 &= ({x}_1, {y}_1, {z}_1)\\
+\vec{v}_2 &= ({x}_2, {y}_2, {z}_2)\\
+
+开始计算：\\
+{q}_1 \times {q}_2 &= \left [ w_1,\vec{v}_1 \right]\times\left [ w_2,\vec{v}_2 \right]\\
+&=\left ( {w}_1+{x}_1i+{y}_1j+{z}_1k \right )\times\left ( {w}_2+{x}_2i+{y}_2j+{z}_2k \right )\\
+&={w}_1{w}_2+{w}_2{x}_1i+{w}_2{y}_1j+{w}_2{z}_1k\\
+&+{w}_1{x}_2i+{x}_1{x}_2i^2+{y}_1{x}_2ji+{z}_1{x}_2ki\\
+&+{w}_1{y}_2j+{x}_1{x}_2ij+{y}_1{y}_2j^2+{z}_1{y}_2kj\\
+&+{w}_1{z}_2k+{x}_1{z}_2ik+{y}_1{z}_2jk+{z}_1{z}_2k^2\\
+
+根据上面的四元数性质(1),可得：\\
+&= {w}_1{w}_2 + {w}_2{x}_1i + {w}_2{y}_1j + {w}_2{z}_1k\\
+&+ {w}_1{x}_2i - {x}_1{x}_2 - {y}_1{x}_2k + {z}_1{x}_2j\\
+&+ {w}_1{y}_2j + {x}_1{x}_2k - {y}_1{y}_2 - {z}_1{y}_2i\\
+&+ {w}_1{z}_2k - {x}_1{z}_2j + {y}_1{z}_2i - {z}_1{z}_2\\
+
+提取公因式：\\
+&\begin{gathered}
+=({w}_1{w}_2 - {x}_1{x}_2 - {y}_1{y}_2 - {z}_1{z}_2)\\
++({w}_2{x}_1 + {w}_1{x}_2 - {z}_1{y}_2 + {y}_1{z}_2)i\\
++({w}_2{y}_1 + {z}_1{x}_2 + {w}_1{y}_2 - {x}_1{z}_2)j\\
++({w}_2{z}_1 - {y}_1{x}_2 + {x}_1{x}_2 + {w}_1{z}_2)k\\
+\end{gathered}\\
+
+可以看到，已经计算出了结果，整理成向量表示形式：\\
+&\begin{bmatrix}
+{w}_1{w}_2 - {x}_1{x}_2 - {y}_1{y}_2 - {z}_1{z}_2\\
+{w}_1{x}_2 + {w}_2{x}_1 + {y}_1{z}_2 - {z}_1{y}_2\\
+{w}_1{y}_2 + {w}_2{y}_1 + {z}_1{x}_2 - {x}_1{z}_2\\
+{w}_1{z}_2 + {w}_2{z}_1 + {x}_1{x}_2 - {y}_1{x}_2\\
+\end{bmatrix}\\
+
+整理成向量形式为：\\
+&\begin{bmatrix}
+w_1w_2-\vec{v}_1\cdot\vec{v}_2,w_1\vec{v}_2+w_2\vec{v}_1+\vec{v}_2\times\vec{v}_1
+\end{bmatrix}
+\end{aligned}</script><p>知道了四元数乘法的定义之后，这里还有几条乘法相关的性质：</p>
+<ul>
+<li>乘法满足结合律，但是不满足交换律:$(ab)c=a(bc),ab \neq ba$</li>
+<li>乘积的模等于模的乘积：$||q_1\cdot{q}_2||=||q_1|| \cdot ||q_2||$</li>
+<li>乘积的逆等于逆的反向乘积：$({q_1q_2})^{-1}={q_2}^{-1}{q_1}^{-1}$</li>
+</ul>
+<h4 id="四元数的点乘"><a href="#四元数的点乘" class="headerlink" title="四元数的点乘"></a>四元数的点乘</h4><p>四元数的点乘的定义和向量的点乘类似：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+q_1 \cdot q_2 &= [w_1,\vec{v}_1] \cdot [w_2,\vec{v}_2]\\
+&= w_1w_2+\vec{v}_1\vec{v}_2\\
+&=w_1w_2+x_1x_2+y_1y_2+z_1z_2
+\end{aligned}</script><p>对于单位四元数来说，点乘结果的取值范围是$(-1\sim{1})$，它的几何意义与向量类似，它的绝对值越大，表示这两个四元数代表的旋转越相似。</p>
+<h4 id="四元数的共轭"><a href="#四元数的共轭" class="headerlink" title="四元数的共轭"></a>四元数的共轭</h4><p>四元数的共轭就是把虚部向量取负，记作：${q}^*$</p>
+<ul>
+<li>向量形式：$q^*=[w,-(x,y,z)]$</li>
+<li>复数形式：$q^*=w-xi-yj-zk$</li>
+</ul>
+<h4 id="四元数的模"><a href="#四元数的模" class="headerlink" title="四元数的模"></a>四元数的模</h4><p>四元数的模定义为：</p>
+<ul>
+<li>复数形式：$||p||=\sqrt{w^2+x^2+y^2+z^2}$</li>
+<li>向量形式：$||p||=\sqrt{w^2+||\vec{v}||^2}$</li>
+</ul>
+<p>模的平方定义为：$||p||^2=pp^*=w^2+x^2+y^2+z^2$</p>
+<h4 id="四元数的逆"><a href="#四元数的逆" class="headerlink" title="四元数的逆"></a>四元数的逆</h4><p>四元数的逆记为：$q^{-1}$，满足以下性质：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+qq^{-1} &= [1,0]=1\\
+q^{-1} &= \frac{q^*}{||q||^2}
+\end{aligned}</script><p>四元数逆的几何意义和矩阵的逆类似，可以用来表示一个旋转的逆向旋转。</p>
+<h4 id="四元数表示三维旋转"><a href="#四元数表示三维旋转" class="headerlink" title="四元数表示三维旋转"></a>四元数表示三维旋转</h4><p>上面说了很多四元数的性质，但还是看不到四元数是怎么表示三维空间中的旋转的，下面直接上公式，下面旋转表示绕旋转轴$n$旋转$\theta$：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+q &= [\cos(\theta/2),sin(\theta/2)\vec{n}]\\
+&= [\cos(\theta/2),sin(\theta/2)n_x,sin(\theta/2)n_y,sin(\theta/2)n_z]
+\end{aligned}</script><p>网上的证明方法有很多：<a href="https://ccjou.wordpress.com/2014/04/23/%E5%9B%9B%E5%85%83%E6%95%B8%E8%88%87%E4%B8%89%E7%B6%AD%E7%A9%BA%E9%96%93%E6%97%8B%E8%BD%89/" target="_blank" rel="noopener">这里</a>、<a href="https://krasjet.github.io/quaternion/quaternion.pdf" target="_blank" rel="noopener">这里</a>。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/29/uguitabcontrol/" rel="next" title="UGUI中实现Tab键切换控件">
+                <i class="fa fa-chevron-left"></i> UGUI中实现Tab键切换控件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/12/algorithm/" rel="prev" title="数据结构与算法 - 复杂度分析">
+                数据结构与算法 - 复杂度分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#3D中的方位与角位移"><span class="nav-number">1.</span> <span class="nav-text">3D中的方位与角位移</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#坐标系选择"><span class="nav-number">1.1.</span> <span class="nav-text">坐标系选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#旋转变换表示"><span class="nav-number">1.2.</span> <span class="nav-text">旋转变换表示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#矩阵表示旋转"><span class="nav-number">1.3.</span> <span class="nav-text">矩阵表示旋转</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#欧拉角表示"><span class="nav-number">1.4.</span> <span class="nav-text">欧拉角表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#其他欧拉角旋转方式"><span class="nav-number">1.4.1.</span> <span class="nav-text">其他欧拉角旋转方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#欧拉角的优缺点"><span class="nav-number">1.4.2.</span> <span class="nav-text">欧拉角的优缺点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四元数表示"><span class="nav-number">1.5.</span> <span class="nav-text">四元数表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#复数"><span class="nav-number">1.5.1.</span> <span class="nav-text">复数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#复数性质"><span class="nav-number">1.5.1.1.</span> <span class="nav-text">复数性质</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复数的几何意义"><span class="nav-number">1.5.1.2.</span> <span class="nav-text">复数的几何意义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#扩展复数"><span class="nav-number">1.5.1.3.</span> <span class="nav-text">扩展复数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四元数相关的性质"><span class="nav-number">1.5.2.</span> <span class="nav-text">四元数相关的性质</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数的表示形式"><span class="nav-number">1.5.2.1.</span> <span class="nav-text">四元数的表示形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实四元数与纯四元数"><span class="nav-number">1.5.2.2.</span> <span class="nav-text">实四元数与纯四元数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#单位四元数"><span class="nav-number">1.5.2.3.</span> <span class="nav-text">单位四元数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数加法"><span class="nav-number">1.5.2.4.</span> <span class="nav-text">四元数加法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数的系数缩放"><span class="nav-number">1.5.2.5.</span> <span class="nav-text">四元数的系数缩放</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数的乘法（叉乘）"><span class="nav-number">1.5.2.6.</span> <span class="nav-text">四元数的乘法（叉乘）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数的点乘"><span class="nav-number">1.5.2.7.</span> <span class="nav-text">四元数的点乘</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数的共轭"><span class="nav-number">1.5.2.8.</span> <span class="nav-text">四元数的共轭</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数的模"><span class="nav-number">1.5.2.9.</span> <span class="nav-text">四元数的模</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数的逆"><span class="nav-number">1.5.2.10.</span> <span class="nav-text">四元数的逆</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四元数表示三维旋转"><span class="nav-number">1.5.2.11.</span> <span class="nav-text">四元数表示三维旋转</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

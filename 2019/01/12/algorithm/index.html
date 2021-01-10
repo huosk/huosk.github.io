@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="数据结构与算法 - 复杂度分析学习算法是为了更快、更节省内存的解决问题，那么如何判断定一个算法是不是足够快、足够省内存，这就需要复杂度分析。复杂度分析包括时间复杂度分析和空间复杂度分析。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法 - 复杂度分析">
+<meta property="og:url" content="https://huosk.github.io/2019/01/12/algorithm/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="数据结构与算法 - 复杂度分析学习算法是为了更快、更节省内存的解决问题，那么如何判断定一个算法是不是足够快、足够省内存，这就需要复杂度分析。复杂度分析包括时间复杂度分析和空间复杂度分析。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/01/12/algorithm/liner.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/12/algorithm/power.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/12/algorithm/compare.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/12/algorithm/changjiantuxing.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.728Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据结构与算法 - 复杂度分析">
+<meta name="twitter:description" content="数据结构与算法 - 复杂度分析学习算法是为了更快、更节省内存的解决问题，那么如何判断定一个算法是不是足够快、足够省内存，这就需要复杂度分析。复杂度分析包括时间复杂度分析和空间复杂度分析。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/01/12/algorithm/liner.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/01/12/algorithm/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>数据结构与算法 - 复杂度分析 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/01/12/algorithm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据结构与算法 - 复杂度分析
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-01-12 22:11:48" itemprop="dateCreated datePublished" datetime="2019-01-12T22:11:48+08:00">2019-01-12</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数据结构与算法/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据结构与算法-复杂度分析"><a href="#数据结构与算法-复杂度分析" class="headerlink" title="数据结构与算法 - 复杂度分析"></a>数据结构与算法 - 复杂度分析</h1><p>学习算法是为了更快、更节省内存的解决问题，那么如何判断定一个算法是不是足够快、足够省内存，这就需要复杂度分析。复杂度分析包括<strong>时间复杂度分析</strong>和<strong>空间复杂度分析</strong>。<br><a id="more"></a><br>复杂度分析能力之于开发者，就像审美能力之于设计师，因此，其重要性是不言而喻的。说道这里，可能会想到，我们平时常用的测试性能的方法，直接把算法跑一遍，然后直接可以知道算法跑的快慢了，为什么还要费劲去分析呢？首先可以肯定的说，这两种方法都有不同的应用场景，比如很多刷题平台，测试算法快慢就是这种方法，并且该方法还有一个名字，叫做<strong>事后统计法</strong>。但是，这种方法存在一定的局限性，主要有两方面：</p>
+<ol>
+<li>测试结果与运行环境相关。同样的算法在不同的计算机上，运行的速度不一样。</li>
+<li>测试结果与数据规模相关。同样一个排序算法，排列100个元素，和排列100万个元素用时肯定不同。</li>
+</ol>
+<p>所以就需要一种不用进行数据输入，就能够知道算法快慢的方法，这就是复杂度分析方法。这里需要注意的是，复杂度分析只是粗略的估计算法的执行效率，对于特定的数据规模，复杂度低的不一定比复杂度高的执行速度快，如果现在还不能理解这句话，没关系，等看完本文之后再来理解。</p>
+<h2 id="O-n-表示法"><a href="#O-n-表示法" class="headerlink" title="$O(n)$表示法"></a>$O(n)$表示法</h2><p>首先考虑一个问题，如果给定一段代码，来计算它的执行时间，如何来进行计算？很简单，把每一条语句的执行时间求和就可以了嘛，看下面一段代码。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cal</span><span class="params">(<span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;n;++i)&#123;</span><br><span class="line">        sum += i;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>计算过程如下：</p>
+<ol>
+<li>首先假设每一条语句执行时间相同，都为单位时间$t$</li>
+<li>第2行执行1次，时间为：$1t$</li>
+<li>第3行执行n次，时间为：$nt$</li>
+<li>第4行执行n次，时间为：$nt$</li>
+<li>第6行执行1次，时间为：$1t$</li>
+<li>总计时间为：$T_1(n)=(1+n+n+1)t=(2n+2)t$</li>
+</ol>
+<p>到此为止，我们已经估算出来上面代码时间了，时间与输入的 n 有关，关系如下图：</p>
+<img src="/2019/01/12/algorithm/liner.png">
+<p>再看一个稍微复杂点的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cal</span><span class="params">(<span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;n;++i)&#123;</span><br><span class="line">        <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(;j&lt;n;++j)&#123;</span><br><span class="line">            sum += i*j;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>还是根据上面的步骤，计算时间复杂度：</p>
+<ol>
+<li>首先假设每一条语句的执行时间相同，都为单位时间$t$</li>
+<li>第2行执行1次，时间为：$1t$</li>
+<li>第3行执行n次，时间为：$nt$</li>
+<li>第4行执行n次，时间为：$nt$</li>
+<li>第5行为嵌套循环，执行$n*n$次，时间为$n^2t$</li>
+<li>第6行在内层循环体内，执行次数是$n*n$，时间为$n^2t$</li>
+<li>第9行执行1次，时间为:$1t$</li>
+<li>总计时间为：$T_2(n)=(1+n+n+n^2+n^2+1)t=(2n^2+2n+2)t$</li>
+</ol>
+<p>可以看出来，最终的时间依旧跟 n 有关，关系如下图：</p>
+<img src="/2019/01/12/algorithm/power.png">
+<p>通过上面例子可以看到，每次我们都假设，每一条语句的执行时间是相同的，即我们并不关心每一条语句执行需要多少时间，而只关注它与单位时间的函数关系，所以我们可以用另一种形式来写上面的表达式：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+T_1(n)  &= (2n+2)t\\
+        &= O(2n+2)\\
+T_2(n)  &= (2n^2+2n+2)t\\
+        &= O(2n^2+2n+2)
+\end{aligned}</script><p>这就是大 O 时间复杂度表示法，它表示算法执行时间，在数据规模 n 发生变化时的变化趋势，因此，也叫<strong>渐进时间复杂度</strong>，简称<strong>时间复杂度</strong>。</p>
+<p>因为关注的重心在于变化趋势（函数图形形状），而公式中的低阶、常量、系数部分对趋势影响较小，所以都可以忽略。因此上面的两个表达式就成了：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+T_1(n)  &= O(2n+2)\\
+        &= O(n)\\
+T_2(n)  &= O(2n^2+2n+2)\\
+        &= O(n^2)
+\end{aligned}</script><p>通过下图可以看到，两者之间的趋势是一致的。</p>
+<img src="/2019/01/12/algorithm/compare.png">
+<h2 id="几个小技巧"><a href="#几个小技巧" class="headerlink" title="几个小技巧"></a>几个小技巧</h2><p>通过上面例子，可能会发现以下几个计算复杂度的规律：</p>
+<ol>
+<li>最大值法则：最终结果只与复杂度最高的（循环次数最多）的代码有关。（因为低阶对于趋势的影响较小，所以忽略）</li>
+<li>乘法法则：嵌套代码的复杂度 = 本身复杂度 x 外层循环复杂度。比如第二个例子中的第5、6行，它们的复杂度 = 本身复杂度 x 外层循环复杂度 = n x n。</li>
+</ol>
+<h2 id="几种常见的复杂度"><a href="#几种常见的复杂度" class="headerlink" title="几种常见的复杂度"></a>几种常见的复杂度</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">复杂度</th>
+<th style="text-align:left">表示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">常数阶</td>
+<td style="text-align:left">$O(1)$</td>
+</tr>
+<tr>
+<td style="text-align:left">对数阶</td>
+<td style="text-align:left">$O(\log{n})$</td>
+</tr>
+<tr>
+<td style="text-align:left">线性阶</td>
+<td style="text-align:left">$O(n)$</td>
+</tr>
+<tr>
+<td style="text-align:left">线性对数阶</td>
+<td style="text-align:left">$O(n\log{n})$</td>
+</tr>
+<tr>
+<td style="text-align:left">K方阶</td>
+<td style="text-align:left">$O(n^2)$,$O(n^3)$,$O(n^k)$</td>
+</tr>
+<tr>
+<td style="text-align:left">指数阶</td>
+<td style="text-align:left">$O(2^n)$</td>
+</tr>
+<tr>
+<td style="text-align:left">阶乘阶</td>
+<td style="text-align:left">$O(n!)$</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>通过下图，可以直观的看到它们的趋势。</p>
+<img src="/2019/01/12/algorithm/changjiantuxing.png">
+<h3 id="常数阶-O-1"><a href="#常数阶-O-1" class="headerlink" title="常数阶$O(1)$"></a>常数阶$O(1)$</h3><p>首先看下面一段代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> i = <span class="number">2</span>;</span><br><span class="line"><span class="keyword">int</span> j = <span class="number">5</span>;</span><br><span class="line"><span class="keyword">int</span> k = i + j;</span><br></pre></td></tr></table></figure>
+<p>很简单吧，这段代码一共执行了3条语句，那么复杂度为3，那么用大 O 表示呢？$T(n) = O(3)$，看上去没什么问题，但是如果代码有5行、10行、10万行呢？难道还写成$O(5)$、$O(10)$、$O(100000)$？看上去不好看，所以对于<strong>不随着数据规模变化的复杂度</strong>（表达式里面没有n），统统都用$O(1)$表示。</p>
+<h3 id="对数阶-O-log-n"><a href="#对数阶-O-log-n" class="headerlink" title="对数阶$O(\log{n})$"></a>对数阶$O(\log{n})$</h3><p>对数阶时间复杂度非常常见，并且非常高效。但是复杂度最难分析，这是因为它并不像其他复杂度，可以通过相乘、相加来得到，它往往需要我们先总结规律，然后找出指数形式，最后再求对数。</p>
+<p>先看下面一个例子：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cal</span><span class="params">(<span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(i &lt;= n)&#123;</span><br><span class="line">        i = i * <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> i;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>根据上面提到的最大值法则，我们只需要计算循环部分的复杂度，那么就需要计算到底循环了多少次，下面是计算步骤：</p>
+<ol>
+<li>假设循环停止时，执行了 k 次，接下来就变成了求 k 的问题。</li>
+<li>我们有哪些已知条件呢？<ul>
+<li>当执行 k 次后，循环停止，即 i = n。</li>
+<li>每执行 1 次，i 都乘以 2，执行 k 次后，$i = 2^k$</li>
+</ul>
+</li>
+<li>根据已知条件可得：$2^k=n$</li>
+<li>最后求得： $k=\log_2{n}$</li>
+</ol>
+<p>上面每次循环 i 都乘以2，如果乘以3、乘以5、乘以10000呢？最终的结果将是 $\log<em>{3}{n}、\log</em>{5}{n}、\log_{10000}{n}$。在使用大 O 表示法时，统统记做 $O(\log{n})$ 表示，这是为什么呢？</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+T(n) = \log_{k}{n} = \log_{k}2*\log_2{n}
+\end{aligned}\tag{换底公式}</script><p>其中$\log_{k}2$是与 n 无关的常量，所以在大 O 表示法中可以忽略，所以对数阶都可以表示为:$O(\log{n})$</p>
+<p>理解了对数阶之后，再来看线性对数阶$O(n\log{n})$就很简单了，还记得上面提到的乘法法则吗？将对数阶$O(\log{n})$外面嵌套一个循环就成了线性对数阶。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cal</span><span class="params">(<span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;n;++i)&#123;</span><br><span class="line">        <span class="keyword">int</span> j = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span>(j &lt;= n)&#123;</span><br><span class="line">            j = j * <span class="number">5</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        sum = sum + j;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以按照上面的方法，自己计算一下，这段代码的复杂度。</p>
+<h3 id="多维输入"><a href="#多维输入" class="headerlink" title="多维输入"></a>多维输入</h3><p>在之前的例子中，时间复杂度由数据规模 n 来决定，还有一些算法，它的数据输入包含多个维度，比如下面一个例子：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">cal</span><span class="params">(<span class="keyword">int</span> m,<span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sum_1 = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;m;++i)&#123;</span><br><span class="line">        sum_1 = sum_1 + i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> sum_2 = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;n;++i)&#123;</span><br><span class="line">        sum_2 = sum_2 + i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> sum_1 + sum_2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上面例子中，它的复杂度是有 m、n 来决定，并且都是线性复杂度，再来复习一下复杂度计算方法。</p>
+<ol>
+<li>首先假设所有的运算时间相同，都为单位时间 $t$</li>
+<li>第2行执行1次，时间为：$t$</li>
+<li>第3、4行执行次数为 m 次，时间为： $mt$</li>
+<li>第7行执行1次，时间为：$t$</li>
+<li>第8、9行执行 n 次，时间为：$nt$</li>
+<li>第12行执行1次，时间为：$t$</li>
+<li>总和：$T(n)=(2m+2n+3)t$，利用大O表示法，省略低阶和单位时间：$T(n) = O(m+n)$</li>
+</ol>
+<h2 id="最好、最坏和平均"><a href="#最好、最坏和平均" class="headerlink" title="最好、最坏和平均"></a>最好、最坏和平均</h2><p>不知道你主要到没有，在上面所有的例子中，都没有出现 if 语句，所以每行代码的执行次数都是确定的，那么如果加入条件分支会怎么样呢？首先看下面一个例子。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// n 表示数组 array 的长度</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span>[] <span class="built_in">array</span>, <span class="keyword">int</span> n, <span class="keyword">int</span> x)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> pos = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">for</span> (; i &lt; n; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">array</span>[i] == x)&#123;</span><br><span class="line">            pos = i;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> pos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码的作用是从长度为n的数组array中，查找值为x的元素，找到之后立刻结束查找，下面分析一下这段代码的复杂度。</p>
+<ol>
+<li>第 1、2 行复杂度：1</li>
+<li>第 3 行执行多少次呢？如果不看循环体，那么它为 n，但是循环内执行了break，所以不能一概而论的认为是n了，这里就需要分情况讨论：<ol>
+<li>最好的情况是，第一个元素就是要找的元素，此时复杂度为：1</li>
+<li>最坏的情况是，最后一个元素才找到元素，此时复杂度为：n</li>
+</ol>
+</li>
+<li>因此这里就引申出了最好情况复杂度、最坏情况复杂度，分别为$O(1)$、$O(n)$</li>
+</ol>
+<p>最好和最坏都是极端的情况，出现的几率很小，而如何表示其他情况下的复杂度呢？这里引入了<strong>平均情况时间复杂度</strong>，我们先看下上面例子有几种查找结果，以及每种情况出现的概率：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">可能情况</th>
+<th style="text-align:left">出现概率</th>
+<th style="text-align:left">复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">不在数组中</td>
+<td style="text-align:left">$1/2$</td>
+<td style="text-align:left">$T_1(n)=n$</td>
+</tr>
+<tr>
+<td style="text-align:left">出现在位置k</td>
+<td style="text-align:left">$1/2$</td>
+<td style="text-align:left">$T_2(n)=?$</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>出现或者不出现的概率相等，都为1/2。对于出现这种情况，数组的每个位置都有可能出现，因此每个位置出现的概率为(1/n)，因此每个位置的时间复杂度为：$k(1/n)$，（其中$k$为出现的位置），因此出现的总概率为：</p>
+<script type="math/tex; mode=display">
+T_2(n)=\sum_{k=1}^{n}(k/n)</script><p>平均情况时间复杂度为：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+T(n)    &= \frac{T_1(n) + T_2(n)}{2}\\
+        &= \frac{n + {\sum_{k=1}^{n}(k/n)}}{2}\\
+        &= \frac{3n+1}{4}
+\end{aligned}</script><p>大O表示法：</p>
+<script type="math/tex; mode=display">
+T(n)=O({\frac{3n+1}{4}}) = O(n)</script><h3 id="摊还分析法"><a href="#摊还分析法" class="headerlink" title="摊还分析法"></a>摊还分析法</h3><p>前面介绍了平均情况时间复杂度，这里再介绍一种特殊情况-均摊时间复杂度。先看一个例子，insert函数是将值val插入到数组array中，当数组满时，则将所有数据相加，然后把数据存到数组第一个位置，并且重置数组计数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// array 表示一个长度为 n 的数组</span></span><br><span class="line"><span class="comment">// 代码中的 array.length 就等于 n</span></span><br><span class="line"><span class="keyword">int</span>[] <span class="built_in">array</span> = <span class="keyword">new</span> <span class="keyword">int</span>[n];</span><br><span class="line"><span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">insert</span><span class="params">(<span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (count == <span class="built_in">array</span>.length) &#123;</span><br><span class="line">        <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="built_in">array</span>.length; ++i) &#123;</span><br><span class="line">            sum = sum + <span class="built_in">array</span>[i];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">array</span>[<span class="number">0</span>] = sum;</span><br><span class="line">        count = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">array</span>[count] = val;</span><br><span class="line">    ++count;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么来分析一下这段代码的事件复杂度：</p>
+<ul>
+<li>最好情况时间复杂度：当数组还有空闲空间时，直接设置数组元素即可，复杂度为$T(n) = 3t = O(1)$。</li>
+<li>最坏情况时间复杂度：当数组满时，需要便利数组，复杂度$T(n) = (2n+6)t = O(n)$。</li>
+<li>平均情况时间复杂度: 此时是多少呢，下面详细的分析一下。</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">可能情况</th>
+<th style="text-align:left">出现概率</th>
+<th style="text-align:left">复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">数组有空间(最好)</td>
+<td style="text-align:left">$P_1$</td>
+<td style="text-align:left">$T_1$</td>
+</tr>
+<tr>
+<td style="text-align:left">数组满元素(最坏)</td>
+<td style="text-align:left">$P_2$</td>
+<td style="text-align:left">$T_2$</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>上面列举了可能出现的两种情况，分别是最好情况、最坏情况。那么分别出现的概率是多少呢？换一种描述方法可能更加直观，数组 array 的长度为 n，当元素的个数为0-n-1时，此时数组有空间；当元素个数为 n 时，数组满元素。所以对于元素个数一共（n+1）种情况，对于每一种情况出现的概率都相同，所以：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+P_1 &= \frac{n}{n+1}\\
+T_1 &= P_1 * 3t\\
+&= (3 - \frac{3}{n+1})t\\
+\\
+P_2 &= \frac{1}{n+1}\\
+T_2 &= P_2 * (2n+6)t\\
+&= \frac{1}{n+1}*(2n+6)t\\
+&= (2 + \frac{4}{n+1})t
+\end{aligned}</script><p>最后，平均情况复杂度 $T(n) = T_1 + T_2 = (5 + \frac{1}{n+1})t = O(1)$。</p>
+<p>同样是计算平均情况时间复杂度，为什么 find 的平均复杂度与最坏情况相同，而insert 的平均复杂度与最好情况相同？我们先对比一下这两函数有上面不同：</p>
+<ol>
+<li>find 在极端情况下，复杂度才为O(1),insert在绝大部分情况，复杂度都为O(1)。</li>
+<li>对于insert 函数，O(1) 和 O(n) 出现比较有规律，一个 O(n)后面接着 n-1 个O(1)。</li>
+</ol>
+<p>对于 insert 这种情况的函数，在分析平均情况复杂度时，有一种更加简单的分析方法，叫做<strong>摊还分析法</strong>，其分析结果称作<strong>均摊时间复杂度</strong>。</p>
+<p>那么如何使用摊还分析法呢？还是看上面的 insert 例子，首先已经知道，一个 O(n)后面跟着 n-1 个O(1)，可以将这些操作当作一个序列，将这个 O(n) 复杂度分摊到 n-1 个O(1)当中，分摊后整个序列的复杂度还是 O(1)，这就是摊还分析法的大致思路。</p>
+<p>可以看出来，摊还分析法的使用限制很大，只有在少数特殊场景才会用到，所以这里只需要简单了解一下就好。另外，摊还分析法的分析结果叫做均摊时间复杂度，其实这里也没有必要咬文嚼字，大可以统一的认为就是平均时间复杂度。</p>
+<h2 id="空间复杂度"><a href="#空间复杂度" class="headerlink" title="空间复杂度"></a>空间复杂度</h2><p>我们上面说了很多例子，基本都是时间复杂度分析的，主要用来描述算法的执行快慢，而现在介绍另一种复杂度分析 - 空间复杂度分析，空间复杂度关心的是内存空间的占用情况，所以在进行分析时，只需关注对象实例化语句，看下面一个例子。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span>[] a = <span class="keyword">new</span> <span class="keyword">int</span>[n];</span><br><span class="line">    <span class="keyword">for</span> (i; i &lt;n; ++i) &#123;</span><br><span class="line">        a[i] = i * i;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = n<span class="number">-1</span>; i &gt;= <span class="number">0</span>; --i) &#123;</span><br><span class="line">        print out a[i]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>空间复杂度分析步骤：</p>
+<ol>
+<li>首先假设所有的类型（集合除外）占用的空间相同，都为单位空间 s</li>
+<li>第2行分配1个对象，占用空间：s</li>
+<li>第3行为一个数组，分配n个单位空间：ns</li>
+<li>剩余代码都没有空间分配，因此为：0</li>
+<li>总计：$S(n)=(1+n)s$,使用大O表示法：$S(n)=O(n)$</li>
+</ol>
+<p>空间复杂度分析和时间复杂度分析很像，用于时间复杂度分析的方法也都可以用到空间复杂度分析中，比如之前提到的<strong>最大值法则</strong>和<strong>乘法法则</strong>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文一共介绍了时间复杂度分析和空间复杂度分析，总的来说，这两种方法理解起来很容易，但要真正熟练掌握复杂度分析，还需要多多练习。</p>
+<p>对于<strong>事后分析法</strong>和<strong>渐进复杂度</strong>这两种方法，各有长短，对于数据规模确定的情况，可能事后分析法比渐进复杂度要更精确一些，比如，对一个班的人按身高进行排序，对于这种数据规模较小的情况，完全可以采用事后分析法，对各种排序算法进行测试选择；再比如，对某宝中搜索出来的商品按照价格进行排序，提前并不知道搜索结果有多少，少的可能只有几种、多的可能上万种甚至更多，此时再使用事后分析法显然已经不太恰当，而采用渐进复杂度分析，就能知道排序用时的增长趋势。</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>在本文最后，通过一个练习来结束本文。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 全局变量，大小为 10 的数组 array，长度 len，下标 i。</span></span><br><span class="line"><span class="keyword">int</span> <span class="built_in">array</span>[] = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">10</span>];</span><br><span class="line"><span class="keyword">int</span> len = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 往数组中添加一个元素</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> element)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (i &gt;= len) &#123; <span class="comment">// 数组空间不够了</span></span><br><span class="line">        <span class="comment">// 重新申请一个 2 倍大小的数组空间</span></span><br><span class="line">        <span class="keyword">int</span> new_array[] = <span class="keyword">new</span> <span class="keyword">int</span>[len*<span class="number">2</span>];</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 把原来 array 数组中的数据依次 copy 到 new_array</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; len; ++j) &#123;</span><br><span class="line">            new_array[j] = <span class="built_in">array</span>[j];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// new_array 复制给 array，array 现在大小就是 2 倍 len 了</span></span><br><span class="line">        <span class="built_in">array</span> = new_array;</span><br><span class="line">        len = <span class="number">2</span> * len;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将 element 放到下标为 i 的位置，下标 i 加一</span></span><br><span class="line">    <span class="built_in">array</span>[i] = element;</span><br><span class="line">    ++i;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>最好情况时间复杂度：O(1)</li>
+<li>最坏情况时间复杂度：O(n)</li>
+<li>均摊时间复杂度：O(1)</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/02/eulerandgimballock/" rel="next" title="欧拉角">
+                <i class="fa fa-chevron-left"></i> 欧拉角
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/16/algorithm02/" rel="prev" title="数据结构与算法 - 链表">
+                数据结构与算法 - 链表 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构与算法-复杂度分析"><span class="nav-number">1.</span> <span class="nav-text">数据结构与算法 - 复杂度分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#O-n-表示法"><span class="nav-number">1.1.</span> <span class="nav-text">$O(n)$表示法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#几个小技巧"><span class="nav-number">1.2.</span> <span class="nav-text">几个小技巧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#几种常见的复杂度"><span class="nav-number">1.3.</span> <span class="nav-text">几种常见的复杂度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常数阶-O-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">常数阶$O(1)$</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对数阶-O-log-n"><span class="nav-number">1.3.2.</span> <span class="nav-text">对数阶$O(\log{n})$</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多维输入"><span class="nav-number">1.3.3.</span> <span class="nav-text">多维输入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最好、最坏和平均"><span class="nav-number">1.4.</span> <span class="nav-text">最好、最坏和平均</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#摊还分析法"><span class="nav-number">1.4.1.</span> <span class="nav-text">摊还分析法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空间复杂度"><span class="nav-number">1.5.</span> <span class="nav-text">空间复杂度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.6.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最后"><span class="nav-number">1.7.</span> <span class="nav-text">最后</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="这是 WebGL 部分的第三篇，主要包括性能问题、内存、与浏览器的交互三部分内容。">
+<meta name="keywords" content="webgl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity WebGL 开发（三）">
+<meta property="og:url" content="https://huosk.github.io/2020/03/13/UnityWebGLDev3/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="这是 WebGL 部分的第三篇，主要包括性能问题、内存、与浏览器的交互三部分内容。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2020/03/13/UnityWebGLDev3/image04.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.822Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Unity WebGL 开发（三）">
+<meta name="twitter:description" content="这是 WebGL 部分的第三篇，主要包括性能问题、内存、与浏览器的交互三部分内容。">
+<meta name="twitter:image" content="https://huosk.github.io/2020/03/13/UnityWebGLDev3/image04.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2020/03/13/UnityWebGLDev3/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Unity WebGL 开发（三） | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2020/03/13/UnityWebGLDev3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Unity WebGL 开发（三）
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-03-13 23:37:03" itemprop="dateCreated datePublished" datetime="2020-03-13T23:37:03+08:00">2020-03-13</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/unity3d/" itemprop="url" rel="index"><span itemprop="name">unity3d</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这是 WebGL 部分的第三篇，主要包括性能问题、内存、与浏览器的交互三部分内容。</p>
+<a id="more"></a>
+<h2 id="性能问题"><a href="#性能问题" class="headerlink" title="性能问题"></a>性能问题</h2><p>WebGL 应用在 GPU 上的性能应该与原生应用接近，因为 WebGL 也会使用 gpu 进行硬件加速，并且从 WebGL API 转换到操作系统的图形 API 性能消耗非常小。</p>
+<p>CPU 方面，WebGL 平台将代码转换为 WebAssembly，它的性能取决于浏览器，各个浏览器之间的对比可以参考<a href="https://blogs.unity3d.com/2018/09/17/webassembly-load-times-and-performance/?_ga=2.216349718.1890713557.1584018786-504656146.1571931117" target="_blank" rel="noopener">这里</a>。</p>
+<p>还有一些其他因素会影响性能，这里主要是 JavaScript 不支持多线程，Unity做的很多多线程优化在 WebGL 平台不起作用。</p>
+<p>为了达到最优的性能，建议最终发布时，将 Exception support 设置为 none。</p>
+<p>当设置了 <code>runInBackground</code>之后，即使画布或者浏览器失去焦点之后，仍然会在后台运行，然后有些浏览器会对后台运行的标签进行限制，如果 WebGL 内容所在标签不可见之后，将会每秒更新一次，这将会造成 Time.deltaTime 比实际要慢，这是因为 Unity 有个 Time.maximumDeltaTime 设置，这个值默认为 0.1，Time.deltaTime 不会小于此值，就是说实际已经过了 1秒，但是系统只步进了 0.1 秒。</p>
+<p>如果想以低帧率运行，可以通过 <code>Application.targetFrameRate</code> 进行设置，如果不需要限制，将该参数设置为 -1，而非一个非常高的值。</p>
+<h2 id="内嵌资源"><a href="#内嵌资源" class="headerlink" title="内嵌资源"></a>内嵌资源</h2><p>有些 .net 程序集中会内嵌一些资源，默认情况下，WebGL 在打包时是不打包这些资源的，目的是为了减少内容的大小，如果有些 API 确实需要这些资源，可以通过以下代码进行设置：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> UnityEditor;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">WebGLEditorScript</span></span><br><span class="line">&#123;</span><br><span class="line">    [<span class="meta">MenuItem(<span class="meta-string">"WebGL/Enable Embedded Resources"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">EnableErrorMessageTesting</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        PlayerSettings.SetPropertyBool(<span class="string">"useEmbeddedResources"</span>, <span class="literal">true</span>, BuildTargetGroup.WebGL);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当启用设置之后，项目中 .net 程序集的内嵌资源都会打包到 WebGL 发布内容中。</p>
+<h2 id="WebGL-内存"><a href="#WebGL-内存" class="headerlink" title="WebGL 内存"></a>WebGL 内存</h2><p>内存是制约 WebGL 内容复杂度的一个重要因素，WebGL 内容运行在浏览器中，可用的内存大小取决于浏览器的类型和设备类型，主要由以下几点决定：</p>
+<ul>
+<li>浏览器是 32 位还是 64 位；</li>
+<li>浏览器是否给每个标签分配单独进程；</li>
+<li>浏览器的 JavaScript 引擎所需内存。</li>
+</ul>
+<p>下图是 Unity WebGL 在浏览器运行时的内存情况</p>
+<img src="/2020/03/13/UnityWebGLDev3/image04.png">
+<p>可以看出，除了 Unity Heap 之外，还需要浏览器分配额外的内存，理解这一点有助于帮助后续的内存优化。</p>
+<p>DOM、Unity Heap、Asset Data、Code 这几块内存在加载之后将会常驻内存，其他的像 AssetBundle、WebAudio 等都是由代码进行控制加载和卸载。</p>
+<h3 id="Unity-Heap"><a href="#Unity-Heap" class="headerlink" title="Unity Heap"></a>Unity Heap</h3><p>UnityHeap 包括几部分组成：</p>
+<ul>
+<li>静态对象内存 ： 和 Unity 版本和项目代码有关；</li>
+<li>栈内存 ： 通常在 <code>5mb</code> 左右；</li>
+<li>动态内存 ：可以增长的部分，主要用于 GC 缓冲区，运行时生成的对象都在该内存段中；</li>
+<li>未分配内存；</li>
+</ul>
+<p>UnityHeap 的大小可以通过 PlayerSetting-&gt;Memory Size 来设置，默认为 256Mb，在 JavaScript 中，UnityHeap 是通过 TypedArray 来表示的，即一旦分配之后就不能增大或减小，并且这部分内存是不返还给浏览器的。</p>
+<p>通常一个空的项目只需要 16Mb 即可运行，堆内存大小可以根据项目复杂度进行调整，但是需要记住，<font color="red">Unity Heap越大，所能使用的用户就越少</font>。因此在实际项目中为了尽可能的减小 Unity Heap 的大小，我们通常需要将我们的项目整个跑一遍，然后通过 Profiler 来查看最终用了多少内存，然后调整一个稍大的值(16整数倍)即可满足需要。</p>
+<h3 id="资源数据（Asset-Data）"><a href="#资源数据（Asset-Data）" class="headerlink" title="资源数据（Asset Data）"></a>资源数据（Asset Data）</h3><p>在编译 WebGL 项目时，Unity 会创建一个<code>a.data</code>文件，它包含了项目的所有场景和资源，因为 WebGL 不能访问系统的文件系统，因此只能在开始之前进行下载，然后解压到浏览器分配的一块连续内存，并且会一直常驻在内存中，所以，如果想要提高加载速度，应该尽可能的降低资源的大小。</p>
+<p>另一种有推荐的方法是采用 AssetBundle，它具备以下几点优势：</p>
+<ul>
+<li>加载时间完全受控，不需要再开始前进行全部加载；</li>
+<li>可以进行卸载，不需要常驻内存；</li>
+<li>分配在堆内存中，不需要浏览器其他额外分配内存；</li>
+<li>可以使用浏览器缓存。</li>
+</ul>
+<h3 id="内存相关问题"><a href="#内存相关问题" class="headerlink" title="内存相关问题"></a>内存相关问题</h3><p>在调试过程中如果遇到内存相关的问题，首先要区分是浏览器分配失败，还是 Unity 从预分配块中分配失败。如果时浏览器分配失败，这说明 WebGL 内容内存占用过大，应该降低资源大小；如果时 Unity 从块中分配内存失败，这说明在 PlayerSetting 中设置的内存太小，应该适当增加。</p>
+<p>那么如何判断这两种情况，不同的浏览器可能显示的结果不同，但是一般的，如果在控制台看到类似 <code>Out of memory</code>的错误，通常是浏览器分配失败；如果在加载内容时发生崩溃，并且没有显示什么错误，造成这种问题的原因很多，但通常都是 Unity 内存分配失败。</p>
+<h3 id="Large-Allocation"><a href="#Large-Allocation" class="headerlink" title="Large-Allocation"></a>Large-Allocation</h3><p>服务器在相应资源请求是，可以在 Http 头中标记 Large-Allocation，它高速浏览器（目前只有火狐支持）我要使用大量的内存，这可以解决 32 位中堆内存分配问题。</p>
+<h3 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h3><p>在堆内存中分配的对象，当没有任何引用指向它们时，将会被当做垃圾进行回收，在 WebGL 平台也是如此。和其他平台不同的是，GC 调用的时机不同，在其他平台，为了执行GC，通常会暂停所有线程，然后检查各个线程栈进行垃圾回收，但是在 WebGL 这是行不通的，因为 WebGL 是单线程，因此只在已知栈为空时WebGL 才进行 GC 调用（目前是每帧结束调用一次）。</p>
+<p>这通常不会有什么问题，因为每帧的产生的垃圾内存很少，但是下面一段代码时不可行的，因为 WebGL 是单线程，在循环过程中，根本没有机会执行 GC 操作，所以造成的结果就是垃圾越来越多，最后内存分配失败。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span> hugeString = <span class="string">""</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">10000</span>;i++)</span><br><span class="line">&#123;</span><br><span class="line">    hugeString += <span class="string">"foo"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关于内存的更多信息，可以参考<a href="https://blogs.unity3d.com/2016/09/20/understanding-memory-in-unity-webgl/?_ga=2.221042840.1890713557.1584018786-504656146.1571931117" target="_blank" rel="noopener">Understanding Memory in Unity WebGL</a>，和<a href="https://blogs.unity3d.com/2016/12/05/unity-webgl-memory-the-unity-heap/?_ga=2.148709303.1890713557.1584018786-504656146.1571931117" target="_blank" rel="noopener">Unity WebGL Memory: The Unity Heap</a>。</p>
+<h2 id="与浏览器交互"><a href="#与浏览器交互" class="headerlink" title="与浏览器交互"></a>与浏览器交互</h2><p>在构建 WebGL 项目中，可能会需要与 Html 中的元素进行交互，或者通过 WebAPI 实现某些功能，这些都需要和浏览器的 JavaScript 进行交互，下面介绍一下应该怎么做。</p>
+<h3 id="从-C-调用-JavaScript-代码"><a href="#从-C-调用-JavaScript-代码" class="headerlink" title="从 C# 调用 JavaScript 代码"></a>从 C# 调用 JavaScript 代码</h3><p>为了调用 JavaScript 代码，首先需要将 JavaScript 文件后缀名修改为 <code>.jslib</code>，并且放到 <code>Assets/Plugins/WebGL</code> 目录，JavaScript 文件需要按照下面的格式。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">mergeInto(LibraryManager.library, &#123;</span><br><span class="line"></span><br><span class="line">  Hello: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">window</span>.alert(<span class="string">"Hello, world!"</span>);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  HelloString: <span class="function"><span class="keyword">function</span> (<span class="params">str</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">window</span>.alert(Pointer_stringify(str));</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  PrintFloatArray: <span class="function"><span class="keyword">function</span> (<span class="params">array, size</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; size; i++)</span><br><span class="line">    <span class="built_in">console</span>.log(HEAPF32[(array &gt;&gt; <span class="number">2</span>) + i]);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  AddNumbers: <span class="function"><span class="keyword">function</span> (<span class="params">x, y</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x + y;</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  StringReturnValueFunction: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> returnStr = <span class="string">"bla"</span>;</span><br><span class="line">    <span class="keyword">var</span> bufferSize = lengthBytesUTF8(returnStr) + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">var</span> buffer = _malloc(bufferSize);</span><br><span class="line">    stringToUTF8(returnStr, buffer, bufferSize);</span><br><span class="line">    <span class="keyword">return</span> buffer;</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  BindWebGLTexture: <span class="function"><span class="keyword">function</span> (<span class="params">texture</span>) </span>&#123;</span><br><span class="line">    GLctx.bindTexture(GLctx.TEXTURE_2D, GL.textures[texture]);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>在 C# 端，按照下面格式进行导入。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"><span class="keyword">using</span> System.Runtime.InteropServices;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">NewBehaviourScript</span> : <span class="title">MonoBehaviour</span> &#123;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"__Internal"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">Hello</span>(<span class="params"></span>)</span>;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"__Internal"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">HelloString</span>(<span class="params"><span class="keyword">string</span> str</span>)</span>;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"__Internal"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">PrintFloatArray</span>(<span class="params"><span class="keyword">float</span>[] array, <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"__Internal"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">AddNumbers</span>(<span class="params"><span class="keyword">int</span> x, <span class="keyword">int</span> y</span>)</span>;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"__Internal"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">string</span> <span class="title">StringReturnValueFunction</span>(<span class="params"></span>)</span>;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"__Internal"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">BindWebGLTexture</span>(<span class="params"><span class="keyword">int</span> texture</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        Hello();</span><br><span class="line"></span><br><span class="line">        HelloString(<span class="string">"This is a string."</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">float</span>[] myArray = <span class="keyword">new</span> <span class="keyword">float</span>[<span class="number">10</span>];</span><br><span class="line">        PrintFloatArray(myArray, myArray.Length);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> result = AddNumbers(<span class="number">5</span>, <span class="number">7</span>);</span><br><span class="line">        Debug.Log(result);</span><br><span class="line"></span><br><span class="line">        Debug.Log(StringReturnValueFunction());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> texture = <span class="keyword">new</span> Texture2D(<span class="number">0</span>, <span class="number">0</span>, TextureFormat.ARGB32, <span class="literal">false</span>);</span><br><span class="line">        BindWebGLTexture(texture.GetNativeTextureID());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在传递参数和返回值时，需要注意以下几点：</p>
+<ul>
+<li>数值类型不需要进行转换即可传输，其他类型需要转换为指针进行传输；</li>
+<li>向 JavaScript 传 string 类型，需要调用 <code>Pointer_strigify(str)</code> 转化为 JavaScript 字符串；</li>
+<li>从 JavaScript 返回 string 类型，需要使用 <code>_malloc</code>和<code>stringToUTF8</code>，具体参考上面<code>StringReturnValueFunction</code>方法；</li>
+<li>数组类型可以通过 <code>HEAP8</code>等类型进行访问，具体参考上面<code>PrintFloatArray</code>方法；</li>
+<li>要从 JavaScript 访问贴图，可以通过 <code>GL.textures</code> 字典，键值为 texture 的指针值。</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>JavaScript</th>
+<th>C#</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HEAP8</td>
+<td>sbyte</td>
+</tr>
+<tr>
+<td>HEAPU8</td>
+<td>byte</td>
+</tr>
+<tr>
+<td>HEAP16</td>
+<td>short</td>
+</tr>
+<tr>
+<td>HEAPU16</td>
+<td>ushort</td>
+</tr>
+<tr>
+<td>HEAP32</td>
+<td>int</td>
+</tr>
+<tr>
+<td>HEAPU32</td>
+<td>uint</td>
+</tr>
+<tr>
+<td>HEAPF32</td>
+<td>float</td>
+</tr>
+<tr>
+<td>HEAPF64</td>
+<td>double</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="JavaScript-调用-C-代码"><a href="#JavaScript-调用-C-代码" class="headerlink" title="JavaScript 调用 C# 代码"></a>JavaScript 调用 C# 代码</h3><p>从 JavaScript 调用 C#方法，需要获取 <code>unityInstance</code> 对象的 <code>SendMessage</code> 函数，具体格式如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unityInstance.SendMessage(objectName,methodName,value);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>objectName : 场景中物体的名称；</li>
+<li>methodName ： 要调用的方法的名称；</li>
+<li>value ：传递的参数，只能值数值类型、字符串、或为空。</li>
+</ul>
+<h3 id="调用-C-方法"><a href="#调用-C-方法" class="headerlink" title="调用 C 方法"></a>调用 C 方法</h3><p>在其他平台如果想要调用 C 函数，需要将 C 代码编译为动态链接库，而在 WebGL 平台则是通过<code>emscripten</code> 工具将 C 的源码转换为 JavaScript 代码，所以需要将 C 源码文件，放到 <code>Assets/Plugins/WebGL</code> 目录中。C 代码的编写和其他平台类似，如果时 C++ 代码，需要导出 C 声明接口。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> <span class="function"><span class="keyword">void</span> <span class="title">Hello</span> <span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Hello, world!\n"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> <span class="function"><span class="keyword">int</span> <span class="title">AddNumbers</span> <span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x + y;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="WebGL-模板"><a href="#WebGL-模板" class="headerlink" title="WebGL 模板"></a>WebGL 模板</h2><p>unity 在打包 WebGL时，会将 player 嵌套进一个 Html 文件中，Unity 有两个内置的 hmtl 模板可以选择，但是在正式生产中，我们可能需要根据自己的需要，进行定制，可以按照下面的方法进行模板定制。</p>
+<p>首先必须将自定义模板放到 <code>Assets/WebGLTemplates/模板名称</code> 文件夹内，每个模板必须包含一个 <code>index.html</code>文件，依赖的资源也需要放置到该文件夹内，当模板创建完成之后，可以在<code>PlayerSetting</code>中选择创建的模板，可以通过 <code>thumbnail.png</code>（128*128 像素）文件给刚创建的模板，添加一个预览图标，方便进行选择。</p>
+<p><code>index.html</code> 文件至少需要包含三个元素：</p>
+<ul>
+<li>WebGL Loader 的脚本标签：<code>&lt;script src=&quot;%UNITY_WEBGL_LOADER_URL%&quot;&gt;&lt;/script&gt;</code>;</li>
+<li>实例化脚本标签：<code>&lt;script&gt; var unityInstance = UnityLoader.instantiate(&quot;unityContainer&quot;, &quot;%UNITY_WEBGL_BUILD_URL%&quot;);&lt;/script&gt;</code>;</li>
+<li>一个 div 标签,包含一个 id 属性，其值为实例化中的第一个参数：’\<div id="unityContainer">\</div>‘。</li>
+</ul>
+<h3 id="UnityLoader-instantiate-container-url-override"><a href="#UnityLoader-instantiate-container-url-override" class="headerlink" title="UnityLoader.instantiate(container, url, override)"></a>UnityLoader.instantiate(container, url, override)</h3><p>container，用于展示内容的容器，通常传入 div 的 id；<br>url，打包时 json 文件地址，通常指定一个宏：<code>%UNITY_WEBGL_BUILD_URL%</code>；<br>override，可选项，用于重写某些预制行为。</p>
+<h3 id="模板中可以使用的宏"><a href="#模板中可以使用的宏" class="headerlink" title="模板中可以使用的宏"></a>模板中可以使用的宏</h3><p>可以通过宏来获取打包内容的信息，宏的格式为 <code>%宏名称%</code>，在打包时会将这些宏进行展开，可用的宏列表如下：</p>
+<ul>
+<li>UNITY_WEBGL_BUILD_URL ： PlayerSetting 中的 ProductName;</li>
+<li>UNITY_WEBGL_LOADER_URL : UnityLoader.js 的 url;</li>
+<li>UNITY_WEBGL_BUILD_URL : 生成的 json 文件的 url;</li>
+<li>UNITY_WIDTH,UNITY_WIDTH : Player 的宽度和高度（像素值）;</li>
+<li>UNITY_CUSTOM_SOME_TAG : 如果使用了 <code>UNITY_CUSTOM_XXX</code>这种格式的宏，当选中这个模板时，Unity 将会在属性面板中显示一个输入框，可以设置标签的值。</li>
+</ul>
+<h3 id="添加进度条"><a href="#添加进度条" class="headerlink" title="添加进度条"></a>添加进度条</h3><p>Unity WebGL 会提供一个默认的加载进度条，当然可以进行自定义。通过重写 <code>UnityLoader.instantiate</code> 中的 <code>override</code> 的 onProgress 行为。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> unityInstance = UnityLoader.instantiate(<span class="string">"unityContainer"</span>, <span class="string">"%UNITY_WEBGL_BUILD_URL%"</span>, &#123;<span class="attr">onProgress</span>: UnityProgress&#125;);</span><br></pre></td></tr></table></figure>
+<p>UnityProgress 方法包含两个参数，第一个参数表示 unityInstance 对象，第二个参数表示加载进度。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UnityProgress</span>(<span class="params">unityInstance, progress</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!unityInstance.Module)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  <span class="keyword">if</span> (!unityInstance.logo) &#123;</span><br><span class="line">    unityInstance.logo = <span class="built_in">document</span>.createElement(<span class="string">"div"</span>);</span><br><span class="line">    unityInstance.logo.className = <span class="string">"logo "</span> + unityInstance.Module.splashScreenStyle;</span><br><span class="line">    unityInstance.container.appendChild(unityInstance.logo);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (!unityInstance.progress) &#123;</span><br><span class="line">    unityInstance.progress = <span class="built_in">document</span>.createElement(<span class="string">"div"</span>);</span><br><span class="line">    unityInstance.progress.className = <span class="string">"progress "</span> + unityInstance.Module.splashScreenStyle;</span><br><span class="line">    unityInstance.progress.empty = <span class="built_in">document</span>.createElement(<span class="string">"div"</span>);</span><br><span class="line">    unityInstance.progress.empty.className = <span class="string">"empty"</span>;</span><br><span class="line">    unityInstance.progress.appendChild(unityInstance.progress.empty);</span><br><span class="line">    unityInstance.progress.full = <span class="built_in">document</span>.createElement(<span class="string">"div"</span>);</span><br><span class="line">    unityInstance.progress.full.className = <span class="string">"full"</span>;</span><br><span class="line">    unityInstance.progress.appendChild(unityInstance.progress.full);</span><br><span class="line">    unityInstance.container.appendChild(unityInstance.progress);</span><br><span class="line">  &#125;</span><br><span class="line">  unityInstance.progress.full.style.width = (<span class="number">100</span> * progress) + <span class="string">"%"</span>;</span><br><span class="line">  unityInstance.progress.empty.style.width = (<span class="number">100</span> * (<span class="number">1</span> - progress)) + <span class="string">"%"</span>;</span><br><span class="line">  <span class="keyword">if</span> (progress == <span class="number">1</span>)</span><br><span class="line">    unityInstance.logo.style.display = unityInstance.progress.style.display = <span class="string">"none"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/webgl/" rel="tag"># webgl</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/13/UnityWebGLDev2/" rel="next" title="Unity WebGL 开发（二）">
+                <i class="fa fa-chevron-left"></i> Unity WebGL 开发（二）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/03/29/ReflectStaticMemberInCsharp/" rel="prev" title="C#中反射获取基类静态成员">
+                C#中反射获取基类静态成员 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#性能问题"><span class="nav-number">1.</span> <span class="nav-text">性能问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内嵌资源"><span class="nav-number">2.</span> <span class="nav-text">内嵌资源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WebGL-内存"><span class="nav-number">3.</span> <span class="nav-text">WebGL 内存</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Unity-Heap"><span class="nav-number">3.1.</span> <span class="nav-text">Unity Heap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#资源数据（Asset-Data）"><span class="nav-number">3.2.</span> <span class="nav-text">资源数据（Asset Data）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存相关问题"><span class="nav-number">3.3.</span> <span class="nav-text">内存相关问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Large-Allocation"><span class="nav-number">3.4.</span> <span class="nav-text">Large-Allocation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收"><span class="nav-number">3.5.</span> <span class="nav-text">垃圾回收</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与浏览器交互"><span class="nav-number">4.</span> <span class="nav-text">与浏览器交互</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从-C-调用-JavaScript-代码"><span class="nav-number">4.1.</span> <span class="nav-text">从 C# 调用 JavaScript 代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JavaScript-调用-C-代码"><span class="nav-number">4.2.</span> <span class="nav-text">JavaScript 调用 C# 代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#调用-C-方法"><span class="nav-number">4.3.</span> <span class="nav-text">调用 C 方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WebGL-模板"><span class="nav-number">5.</span> <span class="nav-text">WebGL 模板</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#UnityLoader-instantiate-container-url-override"><span class="nav-number">5.1.</span> <span class="nav-text">UnityLoader.instantiate(container, url, override)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模板中可以使用的宏"><span class="nav-number">5.2.</span> <span class="nav-text">模板中可以使用的宏</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加进度条"><span class="nav-number">5.3.</span> <span class="nav-text">添加进度条</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="数据结构与算法 - 散列表在之前介绍了二分查找、利用跳表进行查找，在查找效率上都非常高，但是它们有个共同的特点，就是都是基于元素比较的查找。本节介绍一种新的查找方式-散列表，又称哈希表。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法 - 散列表">
+<meta property="og:url" content="https://huosk.github.io/2019/02/21/algorithm11-hashmap/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="数据结构与算法 - 散列表在之前介绍了二分查找、利用跳表进行查找，在查找效率上都非常高，但是它们有个共同的特点，就是都是基于元素比较的查找。本节介绍一种新的查找方式-散列表，又称哈希表。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/02/21/algorithm11-hashmap/hash_algo.png">
+<meta property="og:image" content="https://huosk.github.io/2019/02/21/algorithm11-hashmap/open_addr_linear.png">
+<meta property="og:image" content="https://huosk.github.io/2019/02/21/algorithm11-hashmap/hash_linked.png">
+<meta property="og:image" content="https://huosk.github.io/2019/02/21/algorithm11-hashmap/hashmap_design.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.778Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据结构与算法 - 散列表">
+<meta name="twitter:description" content="数据结构与算法 - 散列表在之前介绍了二分查找、利用跳表进行查找，在查找效率上都非常高，但是它们有个共同的特点，就是都是基于元素比较的查找。本节介绍一种新的查找方式-散列表，又称哈希表。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/02/21/algorithm11-hashmap/hash_algo.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/02/21/algorithm11-hashmap/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>数据结构与算法 - 散列表 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/02/21/algorithm11-hashmap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据结构与算法 - 散列表
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-21 22:32:57" itemprop="dateCreated datePublished" datetime="2019-02-21T22:32:57+08:00">2019-02-21</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数据结构与算法/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据结构与算法-散列表"><a href="#数据结构与算法-散列表" class="headerlink" title="数据结构与算法 - 散列表"></a>数据结构与算法 - 散列表</h1><p>在之前介绍了二分查找、利用跳表进行查找，在查找效率上都非常高，但是它们有个共同的特点，就是都是基于元素比较的查找。本节介绍一种新的查找方式-散列表，又称哈希表。</p>
+<a id="more"></a>
+<p>散列表的底层依赖于数组，算是数组概念的推广，正因为数组支持直接寻址，能够在O(1)时间复杂度内找到目标，才有了散列表高效的查找。</p>
+<p>考虑这样一个例子，要记录一个考场内所有考生的信息，如果按照座位号进行存储的话比较容易，直接使用数组来存储即可；如果要求按照身份证号来查找，那么应该如何进行存储，才能实现高效的查找呢，一种可行的办法是采用身份证号的后几位数字，比如后3位，当通过身份证号进行查找时，只需要截取后几位数，作为数组的索引来读取数组中的数据。</p>
+<p>这种实现方式就是散列思想的应用，其中身份证号叫做<strong>键</strong>；将关键字转为数组下表的方法叫做<strong>散列函数</strong>；散列函数计算到的值叫做<strong>散列值</strong>。</p>
+<img src="/2019/02/21/algorithm11-hashmap/hash_algo.png">
+<p>上面例子的散列函数形式大致如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">HashCode</span>(<span class="params"><span class="keyword">string</span> id</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">string</span> suffix = id.sub(length<span class="number">-3</span>,length);</span><br><span class="line">  <span class="keyword">int</span> hashCode = tointeger(suffix);</span><br><span class="line">  <span class="keyword">return</span> HashCode;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h2><p>在继续介绍下面内容之前，先介绍几个概念：</p>
+<p><strong>槽/桶</strong>：散列表是依赖于数组的结构，数组中的每一个元素称为一个槽/桶，可以通过散列值计算出其数组下标。<br><strong>装载因子</strong>：一个衡量数组使用程度的指标，常用$\alpha$表示，其值：$\alpha$ = 散列表中元素数 / 槽数。</p>
+<h2 id="散列函数"><a href="#散列函数" class="headerlink" title="散列函数"></a>散列函数</h2><p>散列表的核心在于散列函数的设计，如果散列函数设计不当，可能会造成散列表性能退化到O(n)，一个优秀的散列函数应该满足下面三个条件：</p>
+<ol>
+<li>一致性 - 键相等，散列值必须相等</li>
+<li>高效性 - 计算简单，复杂度不能太高</li>
+<li>均匀性 - 均匀的分布所有的键</li>
+</ol>
+<p>一致性其实分为两个方面，如果键相等，则散列值应该相等；如果键不相等，则散列值应该不相等，但是这几乎是不可能的，这种键不相等，但是散列值相等的情况，称为<strong>散列冲突</strong>。</p>
+<p>高效性比较容易解释，散列函数如果复杂度很高，会降低散列表的效率。</p>
+<p>均匀性就是保证所有的键能够均匀的散列到整个范围中，保证均匀性最好的办法就是保证键的每一位都在散列函数中起到了相同的作用，实现散列函数最常见的错误就是忽略了键的高位，很遗憾的是，没有什么好的方法来测试所有的键是否被均匀的散列。</p>
+<p>在介绍了散列函数的几个特点之后，下面介绍几个具体实现散列函数的方法：乘法散列法、除法散列法、全域散列法。</p>
+<h3 id="除法散列法"><a href="#除法散列法" class="headerlink" title="除法散列法"></a>除法散列法</h3><p>除法散列法的核心思想是将键 k 除以 m 求余：</p>
+<script type="math/tex; mode=display">
+Hash(k)=k\mod{m}</script><p>除法散列法的重点在于 m 的选择，这里需要注意以下几点：</p>
+<ul>
+<li>不能是$2^p$，如果 $m = 2^p$，相等于散列函数只保留了 p 个最低位，忽略了高位的计算，这与之前提到的均匀性要求是违背的。</li>
+<li>当 k 是按基数$2^p$表示的字符串时，$m=2^p-1$也是非常差的选择，因为任意置换字符串中字符位置，不会改变散列值。</li>
+</ul>
+<p>通常可以选择一个不太接近$2^p$的<a href="https://zh.wikipedia.org/wiki/%E7%B4%A0%E6%95%B0" target="_blank" rel="noopener">素数</a>，例如要使用散列表来存储大约包含2000个元素的字符串，如果我们能够承受平均每次查找3个元素（由于散列冲突造成），那么可以选择$2000 / 3 \approx {667}$，距离该值相近的2的整数幂为 512、1024,可选择的素数比较多：710、709、719、727……</p>
+<p>假定选择了727，那么基数为 x 和 x+727的散列值是相同的，比如基数为315、1042、1769的键对应的散列值都是 315，这就是发生了散列冲突，需要在这冲突的元素中，找到要查找的目标。</p>
+<h3 id="乘法散列法"><a href="#乘法散列法" class="headerlink" title="乘法散列法"></a>乘法散列法</h3><p>乘法散列法包含以下两步骤来处理键 k：</p>
+<ol>
+<li>将 k 乘以小数 A (0&lt;A&lt;1)，然后提取结果的小数部分。</li>
+<li>将上一步得到的小数部分，乘以 m，并将结果向下取整。</li>
+</ol>
+<script type="math/tex; mode=display">
+Hash(k) = \lfloor m(kA \mod 1)\rfloor</script><p>这里 m 的选择并不是特别重要，一般 $m = 2^p$；A 的选取比较有讲究，一般 $A = s / 2^w$，其中 w 为计算机的字长，Knuth 认为 $A=\sqrt{5}-1 / 2 \approx 0.618$。</p>
+<h3 id="全域散列法"><a href="#全域散列法" class="headerlink" title="全域散列法"></a>全域散列法</h3><p>在某些极端情况下，恶意的攻击者可能会针对你的散列函数，精心设计一些冲突数据，使得散列表查询的时间复杂度从O(1)迅速退化为O(n)，比如有10万条记录，效率下降将近10万倍，正常情况下散列表查询只需要 0.1 秒，退化后需呀 1 万秒，消耗大量的资源来进行散列表的查找，而不能处理其他用户请求，达到DDos 攻击的目的，这就是散列表冲突攻击的基本原理。</p>
+<p>因此，在设计散列函数时，除了要考虑键的均匀散列，还要具备一定的随机性，不管对手选择怎样的键，都能够均匀的进行处理。</p>
+<p>全域散列法是利用一组精心设计的散列函数（这组散列函数称为函数簇），每次散列时，随机从中选取一个作为散列函数，这样就会极大的降低复杂度退化的可能性。</p>
+<p>那么这组散列函数如何设计呢，这里直接给出结果，相关的证明可以参考算法导论中的详细介绍，首先给出散列函数的原型，然后逐一解释其中参数的含义：</p>
+<script type="math/tex; mode=display">
+Hash_{ab}(k) = ((ak+b)\mod p)\mod m</script><ul>
+<li>P 是一个足够大的素数</li>
+<li>A 是 [1,P-1] 之间的整数</li>
+<li>B 是 [0,P-1] 之间的整数</li>
+<li>M 是散列表的槽数</li>
+</ul>
+<p>函数簇定义为：</p>
+<script type="math/tex; mode=display">
+{h_{ab}:a\in[1,P-1],b\in[0,P-1]}</script><h2 id="散列冲突"><a href="#散列冲突" class="headerlink" title="散列冲突"></a>散列冲突</h2><p>即便是 md5 这种哈希算法，都会存在散列冲突，常用的解决办法有两种：开放寻址法、链接法。</p>
+<h3 id="开放寻址法"><a href="#开放寻址法" class="headerlink" title="开放寻址法"></a>开放寻址法</h3><p>开放寻址法的思想是在遇到散列冲突之后，接着向后进行<strong>探查</strong>，直到找到空闲位置。探查的方式包含以下几种：</p>
+<ul>
+<li>线性探查法</li>
+<li>二次探查法</li>
+<li>双重探查法</li>
+</ul>
+<h4 id="线性探查法"><a href="#线性探查法" class="headerlink" title="线性探查法"></a>线性探查法</h4><p>线性探查法的思路非常简单，以散列表的查找为例，首先根据键找到散列表相应的元素 Q，如果不是要查找目标，接着查找下一个元素，依次探查到最后，再从头探查，直到元素Q，用图表示如下：</p>
+<img src="/2019/02/21/algorithm11-hashmap/open_addr_linear.png">
+<p>线性探查采用的散列函数如下：</p>
+<script type="math/tex; mode=display">
+Hash(k,i)=(hash(k) + i) \mod m,i \in [0,m-1]</script><p>其中hash 是一个普通的散列函数，线性探查过程如下：</p>
+<ul>
+<li>首先检查 hash(k) 是否为探查目标，找到了，或者为空，则结束查找，否则继续。</li>
+<li>探查 Hash(k,1) - Hash(k,m-1)</li>
+<li>如果没有探查到，则说明目标不在散列表中</li>
+</ul>
+<p>从上面过程可以看出，最坏的探查情况是要遍历整个散列表，并且随着散列表的数据增长，查找时间也会不断的增加。</p>
+<h4 id="二次探查法"><a href="#二次探查法" class="headerlink" title="二次探查法"></a>二次探查法</h4><p>二次探查法与线性探查法类似，只不过线性探查法的探查步长为 1，而二次探查法的步长是成平方递增的，它的散列函数如下：</p>
+<script type="math/tex; mode=display">
+Hash(k,i) = (hash(k) + c_1{i} + c_2{i}^2) \mod {m}，i \in [0,m-1]</script><p>其中$c_1$、$c_2$为正整数。</p>
+<h4 id="双重探查法"><a href="#双重探查法" class="headerlink" title="双重探查法"></a>双重探查法</h4><p>双重探查法是开放寻址法最好的探查方法之一，因为它产生的散列排布具备随机选择排布特性，它的散列函数如下：</p>
+<script type="math/tex; mode=display">
+Hash(k,i) = (h_1(k) + i * h_2(k)) \mod m，i \in [0,m-1]</script><p>为了能够查找整个散列表，$h_2(k)$必须与 m <a href="https://zh.wikipedia.org/wiki/%E4%BA%92%E8%B3%AA" target="_blank" rel="noopener">互素</a>，实现两数互素的办法有很多，这里只介绍两种</p>
+<ol>
+<li>让 m 取2的整数次幂，$h_2(k)$总是返回奇数。（2的幂和任何奇数互素）</li>
+<li>让 m 为素数，$h_2(k)$的返回值总是比 m 略小。(两个数中较大的为素数，则两数互素)</li>
+</ol>
+<h3 id="链接法"><a href="#链接法" class="headerlink" title="链接法"></a>链接法</h3><p>在链接法中，将所有散列值相同的元素，通过结点指针链接起来，散列槽中存放这头结点的指针。</p>
+<img src="/2019/02/21/algorithm11-hashmap/hash_linked.png">
+<h4 id="链接法散列性能分析"><a href="#链接法散列性能分析" class="headerlink" title="链接法散列性能分析"></a>链接法散列性能分析</h4><p>以散列表的查询为例，分析一下采用链接法的散列表的性能，给定一个元素数量为 n，槽数为 m 的散列表 T，定义 T 的装载因子$\alpha = n / m$，表示一个链平均存储元素数，值越大说明元素越多，空闲位置越少，散列冲突概率越大，下面借用此概念来做性能分析。</p>
+<ul>
+<li>最坏的情况下，所有 n 个元素都在一个槽中，此时散列表退化为普通链表，查询时间复杂度变成 O(n)</li>
+<li>平均情况依赖于元素的平均分布情况，一次不成功的查找的平均时间为$\Theta(1+\alpha)$</li>
+<li>在所有元素平均分布的情况下，一次成功查找所需的平均时间为$\Theta(1+\alpha)$</li>
+</ul>
+<h3 id="开放寻址法-vs-链接法"><a href="#开放寻址法-vs-链接法" class="headerlink" title="开放寻址法 vs 链接法"></a>开放寻址法 vs 链接法</h3><p>开放寻址法优点：</p>
+<ul>
+<li>所有元素存储在数组中，能够利用 CPU 缓存加快查询速度。</li>
+<li>数组结构序列化起来比较简单</li>
+</ul>
+<p>开放寻址法缺点：</p>
+<ul>
+<li>对于散列冲突的元素，查询、删除时间复杂度较高。</li>
+<li>装载因子不能太大，太大的话，散列表退化几率将会增加。</li>
+</ul>
+<p>综上，<strong>当数据量比较小的情况下，适合采用开放寻址方式。</strong></p>
+<p>链接法的优点：</p>
+<ul>
+<li>内存利用率比较高。</li>
+<li>对于散列冲突的元素，查询、删除等操作时间复杂度较低。</li>
+<li>装载因子可以较大，虽然会增加链表的长度，但是在效率上仍然是可以接受的。</li>
+</ul>
+<p>链接法的缺点：</p>
+<ul>
+<li>由于使用链表，需要额外的指针空间，内存会有额外消耗。</li>
+<li>由于使用链表，内存空间是不连续的，不利于 CPU 缓存。</li>
+</ul>
+<p>综上：<strong>链接法适用于数据量非常大的情况，相比与开放寻址法，链接法更加灵活，可优化空间比较大（对链表的优化）。</strong></p>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><p>在介绍玩一些理论知识之后，看一下实际的散列表应该如何实现，这里采用链接法处理散列冲突，代码参考 C# 的 Dictionary。</p>
+<img src="/2019/02/21/algorithm11-hashmap/hashmap_design.png">
+<p>对上图稍作解释：</p>
+<ul>
+<li>buckets 是散列表的槽，int类型数组，存储着指向链表的头结点的指针。</li>
+<li>entries 是散列元素数组，Entry类型，Entry.next 指向链接的下一个结点，-1 表示为最后一个结点。</li>
+</ul>
+<h3 id="插入的实现"><a href="#插入的实现" class="headerlink" title="插入的实现"></a>插入的实现</h3><p>插入的核心流程是：</p>
+<ol>
+<li>获取对象的散列值(hashCode)，根据散列值计算出槽位(targetBucket)。</li>
+<li>根据槽位在 entries 数组找到元素（链头），根据 next 指针遍历整条链，如果某个结点的键值与要插入的键值相等，说明已经存在，直接返回。</li>
+<li>如果不在散列表中则进行插入，将新 Entry 添加到 entries 数组，并将 Entry.next 指向链头，更新散列表的槽，使之指向新的链头。</li>
+</ol>
+<p>代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">Insert</span>(<span class="params">TKey key, TValue <span class="keyword">value</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (key == <span class="literal">null</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 舍弃符号位</span></span><br><span class="line">   <span class="keyword">int</span> hashCode = <span class="keyword">this</span>.comparer.GetHashCode(key) &amp; <span class="number">0x7FFFFFFF</span>;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 根据散列值，计算槽位</span></span><br><span class="line">   <span class="keyword">int</span> targetBucket = hashCode % <span class="keyword">this</span>.buckets.Length;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> entryIndex = <span class="keyword">this</span>.buckets[targetBucket];</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 检查散列表是否已经存在要插入的键值</span></span><br><span class="line">   <span class="keyword">while</span> (entryIndex &gt;= <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">this</span>.entries[entryIndex].hashCode == hashCode &amp;&amp;</span><br><span class="line">           <span class="keyword">this</span>.comparer.Equals(<span class="keyword">this</span>.entries[entryIndex].key, key))</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="comment">// 相同的键值已经插入到散列表中</span></span><br><span class="line">           <span class="keyword">return</span>;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       entryIndex = <span class="keyword">this</span>.entries[entryIndex].next;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 插入新值</span></span><br><span class="line">   <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 动态扩容 - 开始</span></span><br><span class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.freeCount &gt; <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       index = <span class="keyword">this</span>.freeList;</span><br><span class="line">       <span class="keyword">this</span>.freeList = <span class="keyword">this</span>.entries[index].next;</span><br><span class="line">       <span class="keyword">this</span>.freeCount--;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">else</span></span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">this</span>.count == <span class="keyword">this</span>.entries.Length)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="comment">// 扩容</span></span><br><span class="line">           <span class="keyword">this</span>.Resize();</span><br><span class="line">           targetBucket = hashCode % <span class="keyword">this</span>.buckets.Length;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       index = <span class="keyword">this</span>.count;</span><br><span class="line">       <span class="keyword">this</span>.count++;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 动态扩容 - 结束</span></span><br><span class="line">   <span class="keyword">this</span>.entries[index].hashCode = hashCode;     <span class="comment">// 保存散列值</span></span><br><span class="line">   <span class="keyword">this</span>.entries[index].next = <span class="keyword">this</span>.buckets[targetBucket];    <span class="comment">// 将next 指向当前的链头</span></span><br><span class="line">   <span class="keyword">this</span>.entries[index].key = key;</span><br><span class="line">   <span class="keyword">this</span>.entries[index].<span class="keyword">value</span> = <span class="keyword">value</span>;</span><br><span class="line">   <span class="keyword">this</span>.buckets[targetBucket] = index; <span class="comment">// 将链头指向新插入的元素</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="删除的实现"><a href="#删除的实现" class="headerlink" title="删除的实现"></a>删除的实现</h3><p>删除元素的流程如下：</p>
+<ol>
+<li>获取对象的散列值(hashCode)，根据散列值计算出槽位(targetBucket)。</li>
+<li>根据槽位在 buckets 数组中找到链头索引，根据链头遍历整条链，检查每个结点是否为要删除的结点。</li>
+<li>在删除时，要注意维护好整条链的链接，以及更新 buckets 槽中的链头指针。</li>
+</ol>
+<p>代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">Remove</span>(<span class="params">TKey key</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (key == <span class="literal">null</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> System.ArgumentNullException(<span class="string">"key"</span>);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> hashCode = <span class="keyword">this</span>.comparer.GetHashCode(key) &amp; <span class="number">0x7FFFFFFF</span>;</span><br><span class="line">   <span class="keyword">int</span> targetBucket = hashCode % <span class="keyword">this</span>.buckets.Length;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> entryIndex = <span class="keyword">this</span>.buckets[targetBucket];</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> lastNode = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (<span class="keyword">this</span>.buckets != <span class="literal">null</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">while</span> (entryIndex &gt;= <span class="number">0</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="keyword">if</span> (<span class="keyword">this</span>.entries[entryIndex].hashCode == hashCode &amp;&amp;</span><br><span class="line">               <span class="keyword">this</span>.comparer.Equals(<span class="keyword">this</span>.entries[entryIndex].key, key))</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="comment">// 找到要删除的元素</span></span><br><span class="line">               <span class="keyword">if</span> (lastNode &lt; <span class="number">0</span>)</span><br><span class="line">               &#123;</span><br><span class="line">                   <span class="comment">// 要删除的结点为头结点</span></span><br><span class="line">                   <span class="keyword">this</span>.buckets[targetBucket] = <span class="keyword">this</span>.entries[entryIndex].next;</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">else</span></span><br><span class="line">               &#123;</span><br><span class="line">                   <span class="comment">// 要删除的前置节点，与后置结点链接</span></span><br><span class="line">                   <span class="keyword">this</span>.entries[lastNode].next = <span class="keyword">this</span>.entries[entryIndex].next;</span><br><span class="line">               &#125;</span><br><span class="line"></span><br><span class="line">               <span class="comment">// 释放结点</span></span><br><span class="line">               <span class="keyword">this</span>.entries[entryIndex].hashCode = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">               <span class="comment">// 空闲结点也是以链式进行存储，将新的空闲结点指向当先空闲链头</span></span><br><span class="line">               <span class="keyword">this</span>.entries[entryIndex].next = <span class="keyword">this</span>.freeList;</span><br><span class="line">               <span class="keyword">this</span>.entries[entryIndex].key = <span class="keyword">default</span>(TKey);</span><br><span class="line">               <span class="keyword">this</span>.entries[entryIndex].<span class="keyword">value</span> = <span class="keyword">default</span>(TValue);</span><br><span class="line"></span><br><span class="line">               <span class="comment">// 更新空闲结点的头指针</span></span><br><span class="line">               <span class="keyword">this</span>.freeList = entryIndex;</span><br><span class="line">               <span class="keyword">this</span>.freeCount++;</span><br><span class="line"></span><br><span class="line">               <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">           entryIndex = <span class="keyword">this</span>.entries[entryIndex].next;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="查找的实现"><a href="#查找的实现" class="headerlink" title="查找的实现"></a>查找的实现</h3><p>在明白插入和删除之后，插入就很简单了，这里就不实现了，详细的代码实现可以参考<a href="https://referencesource.microsoft.com/#mscorlib/system/collections/generic/dictionary.cs,3b9a0882313262cd" target="_blank" rel="noopener">这里</a>。</p>
+<h3 id="动态扩容"><a href="#动态扩容" class="headerlink" title="动态扩容"></a>动态扩容</h3><p>上面虽然使用了链接法，但是没有使用链表，而是采用 Entry 数组来模拟链表功能，在这里 Entry.next 是一个指向 entries 的指针，它有两方面作用：</p>
+<ol>
+<li>当 Entry 存储着数据时，next 指向下一个散列冲突结点。</li>
+<li>当 Entry 可利用时（即没有存储数据），next 指向下一个空闲的节点。</li>
+</ol>
+<p>freeList 字段记录着闲置链表的头结点索引，当值为 -1 时表示没有闲置的节点。当需要向 entries 中插入数据时，首先检查闲置链表是否为空，如果为空，再从 entries 中分配。</p>
+<p>最后在啰嗦一句 C# 的 Dictionary<k,t> 不是线程安全的，如果涉及到多线程的遍历和修改，需要自行加锁，或者直接使用  ConcurrentDictionary<tkey,tvalue> 或 ImmutableDictionary<tkey,tvalue> 类。</tkey,tvalue></tkey,tvalue></k,t></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/19/EnsureOverflowInCSharp/" rel="next" title="C#中的数值溢出检查">
+                <i class="fa fa-chevron-left"></i> C#中的数值溢出检查
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/02/26/ArrayPartitioning/" rel="prev" title="数组分区使用小结">
+                数组分区使用小结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构与算法-散列表"><span class="nav-number">1.</span> <span class="nav-text">数据结构与算法 - 散列表</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#相关概念"><span class="nav-number">1.1.</span> <span class="nav-text">相关概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#散列函数"><span class="nav-number">1.2.</span> <span class="nav-text">散列函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#除法散列法"><span class="nav-number">1.2.1.</span> <span class="nav-text">除法散列法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#乘法散列法"><span class="nav-number">1.2.2.</span> <span class="nav-text">乘法散列法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#全域散列法"><span class="nav-number">1.2.3.</span> <span class="nav-text">全域散列法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#散列冲突"><span class="nav-number">1.3.</span> <span class="nav-text">散列冲突</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#开放寻址法"><span class="nav-number">1.3.1.</span> <span class="nav-text">开放寻址法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#线性探查法"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">线性探查法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#二次探查法"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">二次探查法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#双重探查法"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">双重探查法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#链接法"><span class="nav-number">1.3.2.</span> <span class="nav-text">链接法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#链接法散列性能分析"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">链接法散列性能分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#开放寻址法-vs-链接法"><span class="nav-number">1.3.3.</span> <span class="nav-text">开放寻址法 vs 链接法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码实现"><span class="nav-number">1.4.</span> <span class="nav-text">代码实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#插入的实现"><span class="nav-number">1.4.1.</span> <span class="nav-text">插入的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除的实现"><span class="nav-number">1.4.2.</span> <span class="nav-text">删除的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查找的实现"><span class="nav-number">1.4.3.</span> <span class="nav-text">查找的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态扩容"><span class="nav-number">1.4.4.</span> <span class="nav-text">动态扩容</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

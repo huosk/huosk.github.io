@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="数据结构与算法 - 红黑树前面已经学习了跳表、散列表，它们的插入、删除、查找等操作是非常高效的，本章再介绍最后一种数据结构 - 红黑树，红黑树是二叉搜索树的改进，所以在介绍红黑树之前，先简单简单介绍一下二叉搜索树。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法 - 红黑树">
+<meta property="og:url" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="数据结构与算法 - 红黑树前面已经学习了跳表、散列表，它们的插入、删除、查找等操作是非常高效的，本章再介绍最后一种数据结构 - 红黑树，红黑树是二叉搜索树的改进，所以在介绍红黑树之前，先简单简单介绍一下二叉搜索树。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/list.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/4NodeParse.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/2-3Tree.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/2-3Tree_Search.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/2-3Tree_Insert.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/2-3Tree_Insert2.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/2-3Tree_BadSit.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/2-3TreeToRedBlackBST.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/RedBlackBSP_Rotate.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/RedBlackBSP_3NodeInsert.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/234Node.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/MoveRedLeft.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/CombineToLeft.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/MoveRedRight.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.779Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据结构与算法 - 红黑树">
+<meta name="twitter:description" content="数据结构与算法 - 红黑树前面已经学习了跳表、散列表，它们的插入、删除、查找等操作是非常高效的，本章再介绍最后一种数据结构 - 红黑树，红黑树是二叉搜索树的改进，所以在介绍红黑树之前，先简单简单介绍一下二叉搜索树。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/list.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>数据结构与算法 - 红黑树 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/03/05/Algorithm12-RedBlackTree/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据结构与算法 - 红黑树
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-03-05 22:35:49" itemprop="dateCreated datePublished" datetime="2019-03-05T22:35:49+08:00">2019-03-05</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数据结构与算法/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据结构与算法-红黑树"><a href="#数据结构与算法-红黑树" class="headerlink" title="数据结构与算法 - 红黑树"></a>数据结构与算法 - 红黑树</h1><p>前面已经学习了跳表、散列表，它们的插入、删除、查找等操作是非常高效的，本章再介绍最后一种数据结构 - 红黑树，红黑树是二叉搜索树的改进，所以在介绍红黑树之前，先简单简单介绍一下二叉搜索树。</p>
+<a id="more"></a>
+<h2 id="二叉搜索树"><a href="#二叉搜索树" class="headerlink" title="二叉搜索树"></a>二叉搜索树</h2><p>在之前的文章介绍了<a href="https://huosk.github.io/2019/01/26/algorithm06/">有根树的表示</a>，其中介绍了有根树的两种表示方法，<strong>父子节点表示法</strong>和<strong>左孩子右兄弟表示法</strong>，对于二叉树的表示来说，这两种方式都可以，本节采用第一种表示方式，对其他方式感兴趣的可以参考<a href="https://huosk.github.io/2019/01/26/algorithm06/">前文</a>。</p>
+<h3 id="二叉搜索树的特点"><a href="#二叉搜索树的特点" class="headerlink" title="二叉搜索树的特点"></a>二叉搜索树的特点</h3><p>在之前介绍过二分查找算法，它是一种基于数组的非常高效的查找算法，最坏情况时间复杂度为$O(\log{n})$，本质上二叉搜索树也是二分思想的一种应用，它通过树的形式，使得二分更加的具象化：以当前节点为中点，分出左右两个子分支。</p>
+<p>在二叉搜索树中，对于任一节点，具备如下特点：</p>
+<ul>
+<li>它的值<em>大于</em>左子树所有节点</li>
+<li>它的值<em>小于</em>右子树所有节点</li>
+</ul>
+<h3 id="二叉搜索树的插入"><a href="#二叉搜索树的插入" class="headerlink" title="二叉搜索树的插入"></a>二叉搜索树的插入</h3><p>根据二叉搜索树的特点，当需要插入一个新节点时，从根节点开始遍历，和节点值进行比较，如果大于节点的值，则递归检查右子节点；如果小于节点的值，则递归检查左子节点；如果与节点的值相等，一般有几种处理方式：</p>
+<ul>
+<li>插入失败，停止插入数据。</li>
+<li>当做大于节点处理，插入右子树中。</li>
+<li>当做小于节点处理，插入左子树中。</li>
+</ul>
+<p>在使用时要根据自己的实际需求，选择适当的插入策略，并且其他操作（查找、删除）也都要遵守这种策略。在下面代码实现中，采取第二种策略，即插入到右子树中。</p>
+<p>插入代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Insert</span>(<span class="params">T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (tree == <span class="literal">null</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        tree = <span class="keyword">new</span> BinaryTreeNode()</span><br><span class="line">        &#123;</span><br><span class="line">            data = t</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    BinaryTreeNode node = tree;</span><br><span class="line">    <span class="keyword">while</span> (node != <span class="literal">null</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (comparer.Compare(node.data, t) &gt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (node.leftChild == <span class="literal">null</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                node.leftChild = <span class="keyword">new</span> BinaryTreeNode()</span><br><span class="line">                &#123;</span><br><span class="line">                    data = t</span><br><span class="line">                &#125;;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            node = node.leftChild;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (node.rightChild == <span class="literal">null</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                node.rightChild = <span class="keyword">new</span> BinaryTreeNode()</span><br><span class="line">                &#123;</span><br><span class="line">                    data = t</span><br><span class="line">                &#125;;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            node = node.rightChild;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上面实现可以看出，<strong>新插入的节点，总是二叉树的叶节点。</strong></p>
+<h3 id="二叉搜索树的删除"><a href="#二叉搜索树的删除" class="headerlink" title="二叉搜索树的删除"></a>二叉搜索树的删除</h3><p>和新插入的节点总是叶节点不同，删除的节点可能在二叉树的任何位置，在删除节点之后，还必须保持二叉搜索树的特性，因此删除操作稍微有点麻烦，根据要删除节点的孩子节点数量，分为下面三种情况：</p>
+<ul>
+<li>没有任何子节点，此时不需要额外操作</li>
+<li>有一个子节点（左或者右），将要删除的节点的父节点指向子节点</li>
+<li>有两个子节点，找到右子树的最小节点，将父节点指向该节点。</li>
+</ul>
+<p>前两种情况比较容易理解，稍微解释一下第三种情况，二叉搜索树特性换一种理解方式：任一节点都是左右子树的分界点，因此当删除该节点时，就需要从剩余的子节点中，重新选取新的分界点，而所有的右子树结点都大于左子树结点，所以只需要从右子树中选取最小节点作为新分界点即可。（或从左子树选择最大的节点）</p>
+<p>代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Delete</span>(<span class="params">T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (tree == <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    BinaryTreeNode node = tree;         <span class="comment">// 要删除的节点</span></span><br><span class="line">    BinaryTreeNode nodeParent = <span class="literal">null</span>;   <span class="comment">// 要删除结点的父节点</span></span><br><span class="line">    <span class="keyword">while</span> (node != <span class="literal">null</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> comp = comparer.Compare(t, node.data);</span><br><span class="line">        <span class="keyword">if</span> (comp &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;<span class="comment">// t &lt; node.data</span></span><br><span class="line">            nodeParent = node;</span><br><span class="line">            node = node.leftChild;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (comp &gt; <span class="number">0</span>)</span><br><span class="line">        &#123;<span class="comment">// t &gt; node.data</span></span><br><span class="line">            nodeParent = node;</span><br><span class="line">            node = node.rightChild;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;<span class="comment">// t == node.data</span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (node == <span class="literal">null</span>)</span><br><span class="line">    &#123;<span class="comment">// 没要找到要删除的节点</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (node.leftChild != <span class="literal">null</span> &amp;&amp; node.rightChild != <span class="literal">null</span>)</span><br><span class="line">    &#123;<span class="comment">// 左右子结点都存在</span></span><br><span class="line">        BinaryTreeNode minNode = node.rightChild;</span><br><span class="line">        BinaryTreeNode minNodeParent = node;</span><br><span class="line">        <span class="keyword">while</span> (minNode.leftChild != <span class="literal">null</span> &amp;&amp;</span><br><span class="line">              comparer.Compare(minNode.leftChild.data, minNode.data) &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            minNodeParent = minNode;</span><br><span class="line">            minNode = minNode.leftChild;</span><br><span class="line">        &#125;</span><br><span class="line">        node.data = minNode.data;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 因为此时 minNode 的卫星数据已经替换了要删除的节点，相当于</span></span><br><span class="line">        <span class="comment">// 要删除的几点与 minNode 互换了位置，因此只需要删除 minNode 即可</span></span><br><span class="line">        <span class="keyword">if</span> (minNodeParent.leftChild == minNode) minNodeParent.leftChild = <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">else</span> minNodeParent.rightChild = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;<span class="comment">// 只有一个子结点，或者没有子结点</span></span><br><span class="line">        BinaryTreeNode child = node.leftChild ?? node.rightChild;</span><br><span class="line">        <span class="keyword">if</span> (nodeParent == <span class="literal">null</span>)</span><br><span class="line">        &#123;<span class="comment">// 要删除的为根节点</span></span><br><span class="line">            tree = child;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (nodeParent.leftChild == node)</span><br><span class="line">            &#123;</span><br><span class="line">                nodeParent.leftChild = child;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">                nodeParent.rightChild = child;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="二叉搜索树的查找"><a href="#二叉搜索树的查找" class="headerlink" title="二叉搜索树的查找"></a>二叉搜索树的查找</h3><p>在理解上面的插入和删除之后，查找就很容易实现了，不过需要注意的是，遍历的策略要和插入时一致，直接上代码：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> BinaryTreeNode <span class="title">FindNode</span>(<span class="params">T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    BinaryTreeNode node = tree;</span><br><span class="line">    <span class="keyword">while</span> (node != <span class="literal">null</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> comp = comparer.Compare(t, node.data);</span><br><span class="line">        <span class="keyword">if</span> (comp &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            node = node.leftChild;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (comp &gt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            node = node.rightChild;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> node;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="二叉搜索树与有序数组互转"><a href="#二叉搜索树与有序数组互转" class="headerlink" title="二叉搜索树与有序数组互转"></a>二叉搜索树与有序数组互转</h3><p>将有序数组转为高度平衡二叉搜索树，高度平衡二叉搜索树左右子节点的高度相差不大于1，这里就不能使用上面的插入算法了，因为对于升序排列的数组，按照上面插入实现，结果必然是一个全为右子节点的链表。</p>
+<p>具体实现思想是这样的，因为二叉树搜索树的每个节点都是它左右子树的中点，因此利用二分思想，不断的取出数组的中点，作为数的下一个节点，代码实现如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> TreeNode <span class="title">SortedArrayToBST</span>(<span class="params"><span class="keyword">int</span>[] nums</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> SortedArrayToBST(nums,<span class="number">0</span>,nums.Length<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> TreeNode <span class="title">SortedArrayToBST</span>(<span class="params"><span class="keyword">int</span>[] nums, <span class="keyword">int</span> left, <span class="keyword">int</span> right</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(left == right)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> TreeNode(nums[left]);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(right &lt; left)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> mid = left + (right - left) / <span class="number">2</span>;</span><br><span class="line">    TreeNode node = <span class="keyword">new</span> TreeNode(nums[mid]);</span><br><span class="line">    node.left = SortedArrayToBST(nums, left, mid - <span class="number">1</span>);</span><br><span class="line">    node.right = SortedArrayToBST(nums, mid + <span class="number">1</span>, right);</span><br><span class="line">    <span class="keyword">return</span> node;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将二叉搜索树转换为有序数组实现就相对简单一些，只需要中序遍历结点即可。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> List&lt;<span class="keyword">int</span>&gt; <span class="title">BSTToSortedArray</span>(<span class="params">TreeNode node</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    List&lt;<span class="keyword">int</span>&gt; list = <span class="keyword">new</span> List&lt;<span class="keyword">int</span>&gt;();</span><br><span class="line">    InOrder(node,(n)=&gt;list.Add(n.val));</span><br><span class="line">    <span class="keyword">return</span> list;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">InOrder</span>(<span class="params">TreeNode node,Action&lt;TreeNode&gt; visitor</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(node == <span class="literal">null</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    InOrder(node.left,visitor);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(visitor != <span class="literal">null</span>)</span><br><span class="line">        visitor(node);</span><br><span class="line"></span><br><span class="line">    InOrder(node.right,visitor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="二叉搜索树性能分析"><a href="#二叉搜索树性能分析" class="headerlink" title="二叉搜索树性能分析"></a>二叉搜索树性能分析</h3><p>随着新节点的插入，会形成各种形状的树，其中最极端的两种情况是：</p>
+<ul>
+<li>最好情况是完全二叉树或满二叉树，此时搜索次数等于根节点的高度，时间复杂度为O(log(n))</li>
+<li>最坏情况是退化成链表，如下图所示，时间复杂度为O(n)</li>
+</ul>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/list.png">
+<h2 id="平衡二叉树"><a href="#平衡二叉树" class="headerlink" title="平衡二叉树"></a>平衡二叉树</h2><p>既然二叉树的插入、删除会造成二叉查找的退化，那么是否能够对二叉搜索树进行改进呢，因此就有了平衡二叉树，平衡二叉树需要保证随着插入、删除操作，都能够保持树的平衡，不会造成性能退化，能在O(logn)时间内完成插入、删除、查找操作，。平衡二叉树的形式多种多样，最早发明的平衡二叉树为 <a href="https://zh.wikipedia.org/wiki/AVL%E6%A0%91" target="_blank" rel="noopener">AVL 树</a>，但目前用的最多的还是<strong>红黑树</strong>，C# 中的 SortedSet 类就是基于红黑树的有序列表。</p>
+<p>平衡二叉树的严格定义是这样：<strong>对于树的任一节点，其左右子树的高度相差不超过1</strong>。</p>
+<p>实际上很多平衡二叉树并不是严格遵循定义的，比如下面要介绍的红黑树，发明平衡二叉树的初衷是解决二叉搜索树退化问题的，因此只要能够保证时间复杂度不退化，就是满足需求的平衡二叉树。</p>
+<h2 id="2-3查找树"><a href="#2-3查找树" class="headerlink" title="2-3查找树"></a>2-3查找树</h2><p>红黑树的原理理解起来不太容易，为了能够更好的理解红黑树，这里先介绍另一种平衡二叉树结构，叫做2-3树，在理解了2-3树的原理之后，就能够很容易红黑树了。</p>
+<h3 id="2-3查找树定义"><a href="#2-3查找树定义" class="headerlink" title="2-3查找树定义"></a>2-3查找树定义</h3><p>一颗2-3查找树或者是一颗空树，或者包含如下节点：</p>
+<p>2-节点：该节点内包含 1 个键值、2个子节点，左子树所有节点都小于该节点，右子树所有节点都大于该节点。（与二叉搜索树节点一致）<br>3-节点：该节点内包含 2 个键值、3个子节点，左子树所有节点都小于该节点，右子树所有节点都大于该节点，中子数所有节点的值都在 2 个键值之间。<br>4-节点：该节点内包含 3 个键值、4个子节点，3个键值划分出4个区间，每个子节点对应一个区间，4-节点通常分解为2个2-节点，通过下图可以看出，4-节点分解之后，形成一个完全二叉树，并且根节点高度增长了1，2-3树就是通过这种方式来实现生长的。</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/4NodeParse.png">
+<p>下图是一颗2-3查找树：</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/2-3Tree.png">
+<p>因为2-3查找树只是为了方便理解红黑树，所以这里只介绍它的相关原理，并不做具体的代码实现了。</p>
+<h3 id="2-3查找树的查找"><a href="#2-3查找树的查找" class="headerlink" title="2-3查找树的查找"></a>2-3查找树的查找</h3><p>它的查找从根节点开始，按照如下过程进行查找：</p>
+<ol>
+<li>与结点的键值对比，如果相等，则返回该节点</li>
+<li>如果小于键值区间，则递归查找左子节点</li>
+<li>如果处于键值区间，则递归查找中子节点</li>
+<li>如果大于键值区间，则递归查找右子节点</li>
+</ol>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/2-3Tree_Search.png">
+<h3 id="2-3查找树的插入"><a href="#2-3查找树的插入" class="headerlink" title="2-3查找树的插入"></a>2-3查找树的插入</h3><p>因为2-3查找树要保持其平衡性，要比二叉搜索树插入复杂一些，流程大致如下：</p>
+<ol>
+<li>首先找到新节点插入位置，这里和二叉搜索树类似，最终在树的底部找到插入的父节点，这个过程是自上而下的查找。</li>
+<li>在找到父节点之后，根据父节点种类的不同，需要不同的插入方式。</li>
+</ol>
+<p>根据父节点的种类，可以分为以下几种情况：</p>
+<ul>
+<li>A:向2-节点插入，将2-节点转化为3-节点，并将新键保存到3-节点中</li>
+<li>B:向3-节点插入，此时根据父节点类型不同，又分为三种情况：<ul>
+<li>B1:没有父节点(为根节点)，将3-节点转换为4-节点(由2个2-节点表示)。</li>
+<li>B2:父节点为2-节点：将3-节点转换为4-节点，然后取出中键，将父节点转换成3-节点，该节点的中、右子树指向4-节点的左右子树（不存在中树了，因为中键取出了）。</li>
+<li>B3:父节点为3-节点：<ol>
+<li>同样先将3-节点转换为4-节点并分解。</li>
+<li>然后并将中键插入到父节点中，但是父节点也是3-节点，在对该父节点重复步骤1，直到父节点为2-节点，此时处理方式同 B2。</li>
+<li>如果直到树的根节点都是3-节点，此时向根节点插入，处理方式同 B1。</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>向父节点为2-节点的3-节点中插入数据：</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/2-3Tree_Insert.png">
+<p>向父节点为3-节点的3-节点中插入数据：</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/2-3Tree_Insert2.png">
+<h3 id="2-3查找树的性能"><a href="#2-3查找树的性能" class="headerlink" title="2-3查找树的性能"></a>2-3查找树的性能</h3><p>2-3树性能主要体现在两点 ：</p>
+<ul>
+<li>局部变换：将4-节点分解时，只影响其相邻的几个节点，而树的其他节点不需要做检查和调整。</li>
+<li>全局特性：局部变换不会影响树的有序性和平衡性。</li>
+<li>自平衡性：与二叉搜索树的自根向叶节点的生长不同，2-3树是自叶节点向根节点的生长，能够始终保持完美平衡。</li>
+</ul>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/2-3Tree_BadSit.png">
+<p>按照降序插入数据，在二叉搜索树中将会退化成链表，但是2-3树最终形成一颗完全二叉树。</p>
+<p>其实在2-3树种进行插入、删除操作，能够始终保持完美平衡，因此，<strong>在一颗大小为 n 的2-3树种，查找和插入操作访问的节点个数必然不会超过$\lg{n}$个，即最坏情况的时间复杂度为$O(\lg{n})$。</strong></p>
+<h3 id="2-3查找树的实现"><a href="#2-3查找树的实现" class="headerlink" title="2-3查找树的实现"></a>2-3查找树的实现</h3><p>既然2-3查找树能够实现完美平衡，那么为什么在实际中却很少使用过呢，原因主要有一下几方面：</p>
+<ul>
+<li>需要维护多种节点类型，以及节点之间的转换、键值复制，会造成额外的性能开销，在节点较少时，性能可能比二叉搜索树还要慢。</li>
+<li>实现不方便，需要处理的情况太多，代码不容易维护。</li>
+</ul>
+<h2 id="红黑树"><a href="#红黑树" class="headerlink" title="红黑树"></a>红黑树</h2><p>在理解了2-3树的原理之后，再来理解红黑树就会容易很多，概括来说：<strong>红黑树是用标准二叉查找树（和颜色信息）来表示2-3树</strong>。为了实现这种表示，需要将2-3树的节点替换成二叉节点，2-节点不需要额外处理，因为它本身就是二叉节点，只需要对3-节点进行替换，替换方式是这样的：将3-节点表示为由一条左斜的红色链接相连的两个2-节点。</p>
+<p>另外一种等价的定义是这样的：</p>
+<p>红黑树是含有红黑链接，并满足以下条件的二叉查找树：</p>
+<ul>
+<li>红链接均为左链接（右子节点不能为红链接）。</li>
+<li>没有任何一个节点同时和两条红链接相连（节点与父节点链接、节点与左子节点链接，不能同时为红链接）。</li>
+<li>该树是完美黑色平衡的，即任意叶子节点到根节点的路径上的黑链接数量相同。</li>
+</ul>
+<p>满足这样定义的红黑树与2-3树是一一对应的（如果没有这些约束，3-节点就会有多种表示方式，一颗2-3树可能对应多种红黑树表示），对应转换关系如下图：</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/2-3TreeToRedBlackBST.png">
+<h3 id="红黑树节点定义"><a href="#红黑树节点定义" class="headerlink" title="红黑树节点定义"></a>红黑树节点定义</h3><p>因为每个节点只有一个父节点，因此可以将<strong>与父节点的链接颜色</strong>，存储到该节点当中，通过设置一个布尔值 isRed 指示节点与父节点链接的颜色，isRed = true 表示红链接，反之为黑链接，并且<strong>规定空链接为黑色（即根节点为黑色）</strong>，节点定义如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public class RedBlackTree&lt;T&gt;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Node</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">bool</span> IsRed;</span><br><span class="line">        <span class="keyword">public</span> Node Left;</span><br><span class="line">        <span class="keyword">public</span> Node Right;</span><br><span class="line">        <span class="keyword">public</span> T Item;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="红黑树的旋转"><a href="#红黑树的旋转" class="headerlink" title="红黑树的旋转"></a>红黑树的旋转</h3><p>当红黑树进行插入、删除时，有可能遇到红色的右链接、两个连续的红链接等不符合红黑树约束的情况，此时就需要利用旋转进行维护，以保持其有序性和完美平衡性。通过下图和代码理解一下旋转的具体实现。（最好是自己能够画一下这个过程，加深理解）</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/RedBlackBSP_Rotate.png">
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Node <span class="title">RotateLeft</span>(<span class="params">Node h</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Node x = h.Right;</span><br><span class="line">    h.Right = x.Left;</span><br><span class="line">    x.Left = h;</span><br><span class="line">    x.IsRed = h.IsRed;</span><br><span class="line">    h.IsRed = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> Node <span class="title">RotateRight</span>(<span class="params">Node h</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Node x = h.Left;</span><br><span class="line">    h.Left = x.Right;</span><br><span class="line">    x.Right = h;</span><br><span class="line">    x.IsRed = h.IsRed;</span><br><span class="line">    h.IsRed = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="红黑树的插入"><a href="#红黑树的插入" class="headerlink" title="红黑树的插入"></a>红黑树的插入</h3><p>用二叉搜索树的方式，向红黑树中插入新的键值，会在底部增加一个新的叶节点，<strong>并且新节点与父节点的链接总是红链接</strong>。红黑树和2-3树是一一对应的，插入可以原理也是相同的，只需要将2-3树的节点分解为红黑节点，就能完成红黑树的插入，下面按照2-3树的插入情形分类，来看看红黑树是如何与2-3树一一对应的。</p>
+<ul>
+<li>A:向2-节点插入新键，将2-节点转换为3-节点。<ul>
+<li>A1:如果插入到左子结点，不需要额外处理。</li>
+<li>A2:如果插入到右子节点，产生了红色右链接，所以需要坐旋转。</li>
+</ul>
+</li>
+<li>B:向3-节点插入新键，根据新键所在区间，分为以下三种情况<ul>
+<li>B1:大于3-节点的两个键，插入到右子结点，插入之后形成左右两个红链接，此时需要将两个红链接变为黑色链接。</li>
+<li>B2:小于3-节点的两个键，插入到左子结点，插入之后形成两个连续红链接，此时只需右旋转即可得到 B1 情况。</li>
+<li>B3:介于两个键值之间，插入到中子结点，插入后形成两个连续红链接，一条红色左链接和一条红色右链接，此时只需左旋转红色右链接即可得到 B2 情况。</li>
+</ul>
+</li>
+</ul>
+<p>红黑树中向3-节点插入新键，与2-3树中3-节点插入新键的处理方式是类似的，最终都是形成一颗完全二叉树，只不过2-3树利用4-节点的分解来实现，而红黑树中采用旋转和颜色转换，虽然形式上略有区别，但是目的是一致的。</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/RedBlackBSP_3NodeInsert.png">
+<p>在上图中可以看到，最后一步处理都是颜色转换，需要将节点左右两个红链接转换为黑链接，同时还需要节点的与其父节点的链接转为红链接(这就等价于2-3树插入中，4-节点分解时，将上层2-节点转换为3-节点、3-节点转换为4节点)，代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">FlipColor</span>(<span class="params">Node h</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    h.IsRed = !h.IsRed;</span><br><span class="line">    h.Left.IsRed = !h.Left.IsRed;</span><br><span class="line">    h.Right.IsRed = !h.Right.IsRed;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>既然颜色转换会修改父节点的链接颜色，那么就可能造成父节点不符合红黑树约束，因此需要继续向上转换父节点，所以这是一个从新插入节点到根节点的递归过程，对于每个节点，只要按照如下顺序进行检查，就能保证插入后与2-3树的一一对应关系(和2-3插入相同，都是自下而上分解4-节点的过程)：</p>
+<ol>
+<li>右子节点为红色、左子结点为黑色，进行左旋转。</li>
+<li>左子节点为红色、左子节点的左子节点也为红色，进行右旋转。</li>
+<li>左子节点、右子节点都为红色，进行颜色转换。</li>
+</ol>
+<p>为什么是这么一个检查顺序，其实这就是上面 B3 情况的处理流程，从“3-节点插入”图中可以看出，B1 是 B2 的子集、B2 是 B3 的子集，因此只需要按照 B3 的流程进行<strong>检查处理</strong>，就能够完成B1、B2 的检查处理。</p>
+<p>最后，需要注意的是，在进行颜色转换时，对于<strong>根节点，要始终保持黑色</strong>，这是因为红链接表示3-节点的左子链接，而根节点没有父节点，所以不能表示为红链接。</p>
+<p>以下是插入的实现代码：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Insert</span>(<span class="params">T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   tree = InsertInternal(tree, t);</span><br><span class="line">   tree.IsRed = <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">InsertInternal</span>(<span class="params">Node h, T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (h == <span class="literal">null</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">new</span> Node(t)</span><br><span class="line">       &#123;</span><br><span class="line">           IsRed = <span class="literal">true</span></span><br><span class="line">       &#125;;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">int</span> comp = <span class="keyword">this</span>.comparer.Compare(t, h.Item);</span><br><span class="line">   <span class="keyword">if</span> (comp &lt; <span class="number">0</span>) h.Left = InsertInternal(h.Left, t);</span><br><span class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (comp &gt; <span class="number">0</span>) h.Right = InsertInternal(h.Right, t);</span><br><span class="line">   <span class="keyword">else</span> h.Item = t;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (h.Right.IsRed &amp;&amp; !h.Left.IsRed) h = RotateLeft(h);</span><br><span class="line">   <span class="keyword">if</span> (h.Left.IsRed &amp;&amp; h.Left.Left.IsRed) h = RotateRight(h);</span><br><span class="line">   <span class="keyword">if</span> (h.Left.IsRed &amp;&amp; h.Right.IsRed) FlipColor(h);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> h;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="红黑树的删除"><a href="#红黑树的删除" class="headerlink" title="红黑树的删除"></a>红黑树的删除</h3><p>虽然红黑树的插入已经很复杂了，但是红黑树的删除更加麻烦，因为它不仅需要在（为了删除结点而）构造临时4-节点时沿着查找路径向下进行变换，还要在分解遗留4-结点时沿着查找路径向上进行变换（同插入操作）。</p>
+<p>下面先从比较简单删除最小值开始，一步步了解如何实现红黑树的删除操作。</p>
+<h4 id="删除最小值"><a href="#删除最小值" class="headerlink" title="删除最小值"></a>删除最小值</h4><p>因为最小值只可能在树的底部，并且是左链接，因此，先自上而下遍历初步调整左链接，这个过程是为了保证最终要删除的节点不是2-节点（2-节点删除会破坏整棵树的完美平衡性）；再自下而上的进行平衡调整。</p>
+<p>首先是自上而下进行左子节点遍历，作用是将节点调整为非2-节点，可能会遇到以下几种情况：</p>
+<ol>
+<li>在根节点：<ol>
+<li>根节点及其左右子节点都是2-节点，合并为4-节点。</li>
+<li>否则需要保证根节点的左子节点不为2-节点，可以从右侧兄弟节点借一个键来。</li>
+</ol>
+</li>
+<li>其他非根节点：<ol>
+<li>如果左子节点不是2-节点，不需要额外处理。</li>
+<li>如果左子节点是2-节点，且它的兄弟节点不是2-节点，将兄弟节点中的一个键移动到左子节点中。</li>
+<li>如果左子节点和兄弟节点都是2-节点，将左子节点、兄弟节点、父节点中的最小键合并为4-节点。</li>
+</ol>
+</li>
+</ol>
+<p>要将上述过程转换为代码，需要解决几个问题：</p>
+<ol>
+<li>如何判断 h 节点的左子节点为2-节点</li>
+<li>如何实现将 h 节点的左子节点的兄弟节点的一个键转移到左子节点中</li>
+<li>如何将 h 节点的左子节点、兄弟节点、h节点中的最小键合并为4-节点</li>
+</ol>
+<p>为了解决上面的问题，我们需要在回忆一下2-节点、3-节点、4-节点在红黑树中怎么表示，有一点需要注意，在下图中可以看到4-节点存在两个连续的红链接，这与红黑树的特性是违背的，但是因为这个4-节点只是临时存在，在进行自下而上的平衡调整时，就会消除这个问题，因此在转换4-节点是允许不满足红黑树特性的4-节点。</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/234Node.png">
+<p>在清楚3-节点、4-节点如何表示之后，第一个问题就非常容易解决了，代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 判断节点 h 的左子节点是否为2节点：</span></span><br><span class="line"><span class="comment">// 如果 左子链接为红链接，那么左子节点和 h 构成了 3-节点</span></span><br><span class="line"><span class="comment">// 如果 左孙子链接为红链接，那么左子节点和左孙子节点构成了 3-节点</span></span><br><span class="line"><span class="comment">// 如果 左子链接、左孙子链接都为红链接，那么 h节点、左子节点、左孙子节点构成了4-节点</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 因此节点 h 左子节点为2-节点的条件是：</span></span><br><span class="line"><span class="keyword">if</span>(!h.Left.IsRed &amp;&amp; !h.Left.Left.IsRed)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// h 左子节点为 2-节点</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第二个问题解决起来比较麻烦，需要依次经过”颜色转换-右旋转右子节点-左旋转节点-颜色转换“，通过下面示例图来理解一下：</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/MoveRedLeft.png">
+<p>第三个问题稍微容易一些，因为自上向下处理过程中，能够确保 h 节点不是2-节点，因此解决问题3只需要将颜色进行转换，即可得到一个左右红链接的4-节点。这里需要再次强调一下，4-节点是自上而下调整过程中产生的临时节点，会在自下而上分解平衡的过程中进行消除，因此并不会影响红黑树的特性，合并过程如下图：</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/CombineToLeft.png">
+<p>在解决了上面三个问题之后，代码实现起来就容易多了，直接上代码：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 左子节点红链接 或 左孙子节点红链接表示3-节点</span></span><br><span class="line"><span class="comment">// 左子节点、左孙子节点都为红表示4-节点</span></span><br><span class="line"><span class="comment">// 左子节点、左孙子节点都不为红表示2-节点</span></span><br><span class="line"><span class="keyword">if</span> (!h.Left.IsRed &amp;&amp; !h.Left.Left.IsRed)</span><br><span class="line">&#123;</span><br><span class="line">    MoveRedToLeft(h);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">MoveRedToLeft</span>(<span class="params">Node h</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   FlipColor(h);</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 判断 h 右子节点是否为 3-节点 或 4-节点</span></span><br><span class="line">   <span class="keyword">if</span> (h.Right != <span class="literal">null</span> &amp;&amp; h.Right.Left != <span class="literal">null</span> &amp;&amp; h.Right.IsRed)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="comment">// 右子节点3-节点 或 4-节点，将右子节点的键移到左子节点中</span></span><br><span class="line">       h.Right = RotateRight(h.Right);</span><br><span class="line">       h = RotateLeft(h);</span><br><span class="line">       FlipColor(h);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> h;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>稍解释下上面代码，因为第二问题和第三个问题的解决方法，第一个步骤是相同的，区别部分在于右子节点非2-节点时，可以将右子节点的键转移到左子节点中，因此有了上面代码的第二个 if 判断。</p>
+<p>在自上而下调整完毕之后，需要接着进行自下而上的分解调整时产生的4-节点，这里和插入时的分解4-节点非常类似，平衡代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">Blance</span>(<span class="params">Node h</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (h.Right.IsRed) h = RotateLeft(h);</span><br><span class="line">   <span class="keyword">if</span> (h.Left.IsRed &amp;&amp; h.Left.Left.IsRed) RotateRight(h);</span><br><span class="line">   <span class="keyword">if</span> (h.Left.IsRed &amp;&amp; h.Right.IsRed) FlipColor(h);</span><br><span class="line">   <span class="keyword">return</span> h;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后完整的删除最小值代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">RemoveMin</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (tree == <span class="literal">null</span>)</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 因为自上而下遍历过程中，能够保证左子节点非2-节</span></span><br><span class="line">   <span class="comment">// 因此左子节点与父节点的链接为红链接，为了递归中统一</span></span><br><span class="line">   <span class="comment">// 处理，如果根节点非2-节点，将根节点也设置为红色。</span></span><br><span class="line">    <span class="keyword">if</span> (!tree.Left.IsRed &amp;&amp; !tree.Right.IsRed)</span><br><span class="line">        tree.IsRed = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">   tree = RemoveMinInternal(tree);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> 删除最小值的递归函数</span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;returns&gt;</span>删除最小值后的左子树根<span class="doctag">&lt;/returns&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;param name="h"&gt;</span>需要删除左子树中最小值的节点<span class="doctag">&lt;/param&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">RemoveMinInternal</span>(<span class="params">Node h</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (h.Left == <span class="literal">null</span>)</span><br><span class="line">       <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 左子节点红链接 或 左孙子节点红链接表示3-节点</span></span><br><span class="line">   <span class="comment">// 左子节点、左孙子节点都为红表示4-节点</span></span><br><span class="line">   <span class="comment">// 左子节点、左孙子节点都不为红表示2-节点</span></span><br><span class="line">   <span class="keyword">if</span> (!h.Left.IsRed &amp;&amp; !h.Left.Left.IsRed)</span><br><span class="line">   &#123;</span><br><span class="line">       h = MoveRedToLeft(h);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 继续自上而下递归调整</span></span><br><span class="line">   h.Left = RemoveMinInternal(h.Left);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   <span class="comment">// 开始自下而上进行分解4-节点，平衡红黑树</span></span><br><span class="line">   <span class="keyword">return</span> Blance(h);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="删除最大值"><a href="#删除最大值" class="headerlink" title="删除最大值"></a>删除最大值</h4><p>在理解最小值的删除之后，最大值的删除与之类似，同样首先需要自上而下的进行调整，然后再自下而上进行回溯，分解创建的4-节点，以保持红黑树的特性。</p>
+<p>与删除最小值不同，因为最大值在底层的右子节点，所以需要保证右子节点不为2-节点，因此也会有以下几种情况：</p>
+<ol>
+<li>如果节点的右子节点不为2-节点，则不需要额外处理。</li>
+<li>如果节点的右子节点是2-节点，左子节点不是2-节点，则将左侧的键移到右子节点，构成3-节点</li>
+<li>如果节点的在右子节点、左子节点都为2-节点，则将左子节点、右子节点、父节点组合成一个四节点。</li>
+</ol>
+<p>第1、3和删除最小值类似，重点说一下第2种情况，在向下遍历路径上的节点 h 转换流程：“颜色转换-右旋转-颜色转换”，如下图所示：</p>
+<img src="/2019/03/05/Algorithm12-RedBlackTree/MoveRedRight.png">
+<p>自下而上的消除4-节点的方式是相同的，直接给出删除最大值的代码：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">RemoveMax</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (tree == <span class="literal">null</span>)</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (!tree.Left.IsRed &amp;&amp; !tree.Right.IsRed)</span><br><span class="line">       tree.IsRed = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">   tree = RemoveMaxInternal(tree);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">RemoveMaxInternal</span>(<span class="params">Node h</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 因为左链接可以为红链接，所以可以直接将</span></span><br><span class="line">    <span class="comment">// 左链接的红链接旋转到右链接，使得右子节点变成3-节点或4-节点</span></span><br><span class="line">    <span class="keyword">if</span> (h.Left.IsRed)</span><br><span class="line">       h = RotateRight(h);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (h.Right == <span class="literal">null</span>)</span><br><span class="line">       <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果节点为2-节点</span></span><br><span class="line">    <span class="keyword">if</span>(!h.Left.IsRed &amp;&amp; !h.Right.IsRed)</span><br><span class="line">    &#123;</span><br><span class="line">       h = MoveRedToRight(h);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    h.Right = RemoveMaxInternal(h.Right);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Blance(h);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">MoveRedToRight</span>(<span class="params">Node h</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   FlipColor(h);</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 判断左侧子节点是否非2-节点（3-节点、4-节点）</span></span><br><span class="line">   <span class="keyword">if</span>(h.Left != <span class="literal">null</span> &amp;&amp; h.Left.Left != <span class="literal">null</span> &amp;&amp; h.Left.Left.IsRed)</span><br><span class="line">   &#123;</span><br><span class="line">       h = RotateRight(h);</span><br><span class="line">       FlipColor(h);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> h;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="删除任意值"><a href="#删除任意值" class="headerlink" title="删除任意值"></a>删除任意值</h4><p>在理解了最小值和最大值的删除之后，再来实现任意值得删除，就容易一些，方法与删除最大/最小值类似，同样需要先自上而下进行搜索调整，如果发现要删除的节点不在树底部，需要将要删除的节点和它左子树的最小节点进行交换（和二叉搜索树的删除相同），自上而下搜索完成之后，删除结点，然后自下而上地回溯搜索路径，将临时的4-节点进行分解，代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Remove</span>(<span class="params">T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (t == <span class="literal">null</span> || !Contains(t))</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (!IsRedNode(tree.Left) &amp;&amp; !IsRedNode(tree.Right))</span><br><span class="line">       tree.IsRed = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">   tree = Remove(tree, t);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (tree != <span class="literal">null</span>)</span><br><span class="line">       tree.IsRed = <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> Node <span class="title">Remove</span>(<span class="params">Node h, T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (comparer.Compare(h.Item, t) &lt; <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">if</span> (!IsRedNode(h.Left) &amp;&amp; !IsRedNode(h.Right))</span><br><span class="line">           h = MoveRedToLeft(h);</span><br><span class="line"></span><br><span class="line">       h.Left = Remove(h.Left, t);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">else</span></span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">if</span> (IsRedNode(h.Left))</span><br><span class="line">           h = RotateRight(h);</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (comparer.Compare(h.Item, t) == <span class="number">0</span> &amp;&amp; h.Right == <span class="literal">null</span>)</span><br><span class="line">           <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (!IsRedNode(h.Right) &amp;&amp; !IsRedNode(h.Right.Left))</span><br><span class="line">       &#123;</span><br><span class="line">           h = MoveRedToRight(h);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (comparer.Compare(h.Item, t) == <span class="number">0</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="comment">// 找到右子树的最小值，替换到要删除的节点</span></span><br><span class="line">           Node x = MinNode(h.Right);</span><br><span class="line">           h.Item = x.Item;</span><br><span class="line"></span><br><span class="line">           <span class="comment">// 替换完成之后，只需要将最小值节点删除即可</span></span><br><span class="line">           h.Right = RemoveMinInternal(h.Right);</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">else</span></span><br><span class="line">       &#123;</span><br><span class="line">           h.Right = Remove(h.Right, t);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> Balance(h);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>红黑树之所以比较难学，个人认为主要原因在于它的旋转、颜色转换等操作的作用不够直观，并且这些操作会影响父子、兄弟节点，更是难以缕清之间的关系，所以将红黑树的操作和2-3树进行一一对应起来，便于学习和理解。</p>
+<p>对于2-3树来说，3-节点、4-节点用红、黑链接有多种表示方式，因此红黑树规定了一些约束，这些约束一是保证一个2-3树只对应一种红黑树表示，另一个重要作用就是简化代码的实现。</p>
+<p>最后附上完整<a href="https://github.com/huosk/Algo/blob/master/CSharp/Collections/RedBlackTree.cs" target="_blank" rel="noopener">代码</a>。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/26/ArrayPartitioning/" rel="next" title="数组分区使用小结">
+                <i class="fa fa-chevron-left"></i> 数组分区使用小结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/11/Algorithm13-Heap/" rel="prev" title="数据结构与算法 - 二叉堆">
+                数据结构与算法 - 二叉堆 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构与算法-红黑树"><span class="nav-number">1.</span> <span class="nav-text">数据结构与算法 - 红黑树</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#二叉搜索树"><span class="nav-number">1.1.</span> <span class="nav-text">二叉搜索树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#二叉搜索树的特点"><span class="nav-number">1.1.1.</span> <span class="nav-text">二叉搜索树的特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二叉搜索树的插入"><span class="nav-number">1.1.2.</span> <span class="nav-text">二叉搜索树的插入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二叉搜索树的删除"><span class="nav-number">1.1.3.</span> <span class="nav-text">二叉搜索树的删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二叉搜索树的查找"><span class="nav-number">1.1.4.</span> <span class="nav-text">二叉搜索树的查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二叉搜索树与有序数组互转"><span class="nav-number">1.1.5.</span> <span class="nav-text">二叉搜索树与有序数组互转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二叉搜索树性能分析"><span class="nav-number">1.1.6.</span> <span class="nav-text">二叉搜索树性能分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#平衡二叉树"><span class="nav-number">1.2.</span> <span class="nav-text">平衡二叉树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3查找树"><span class="nav-number">1.3.</span> <span class="nav-text">2-3查找树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3查找树定义"><span class="nav-number">1.3.1.</span> <span class="nav-text">2-3查找树定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3查找树的查找"><span class="nav-number">1.3.2.</span> <span class="nav-text">2-3查找树的查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3查找树的插入"><span class="nav-number">1.3.3.</span> <span class="nav-text">2-3查找树的插入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3查找树的性能"><span class="nav-number">1.3.4.</span> <span class="nav-text">2-3查找树的性能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3查找树的实现"><span class="nav-number">1.3.5.</span> <span class="nav-text">2-3查找树的实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#红黑树"><span class="nav-number">1.4.</span> <span class="nav-text">红黑树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树节点定义"><span class="nav-number">1.4.1.</span> <span class="nav-text">红黑树节点定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的旋转"><span class="nav-number">1.4.2.</span> <span class="nav-text">红黑树的旋转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的插入"><span class="nav-number">1.4.3.</span> <span class="nav-text">红黑树的插入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的删除"><span class="nav-number">1.4.4.</span> <span class="nav-text">红黑树的删除</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#删除最小值"><span class="nav-number">1.4.4.1.</span> <span class="nav-text">删除最小值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除最大值"><span class="nav-number">1.4.4.2.</span> <span class="nav-text">删除最大值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#删除任意值"><span class="nav-number">1.4.4.3.</span> <span class="nav-text">删除任意值</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.5.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

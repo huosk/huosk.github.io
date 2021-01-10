@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="在本文中将介绍 ugui 优化过程中，涉及的三个非常重要的概念，分别是填充率（Fillrate）、画布（Canvas）、输入（Input）。">
+<meta name="keywords" content="ugui,unity最佳实践">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UGUI最佳实践(3)-填充率、画布、输入">
+<meta property="og:url" content="https://huosk.github.io/2018/12/14/FillrateCanvasInput/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="在本文中将介绍 ugui 优化过程中，涉及的三个非常重要的概念，分别是填充率（Fillrate）、画布（Canvas）、输入（Input）。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.721Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="UGUI最佳实践(3)-填充率、画布、输入">
+<meta name="twitter:description" content="在本文中将介绍 ugui 优化过程中，涉及的三个非常重要的概念，分别是填充率（Fillrate）、画布（Canvas）、输入（Input）。">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2018/12/14/FillrateCanvasInput/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>UGUI最佳实践(3)-填充率、画布、输入 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2018/12/14/FillrateCanvasInput/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">UGUI最佳实践(3)-填充率、画布、输入
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-12-14 23:10:24" itemprop="dateCreated datePublished" datetime="2018-12-14T23:10:24+08:00">2018-12-14</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/unity3d/" itemprop="url" rel="index"><span itemprop="name">unity3d</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在本文中将介绍 ugui 优化过程中，涉及的三个非常重要的概念，分别是填充率（Fillrate）、画布（Canvas）、输入（Input）。<br><a id="more"></a></p>
+<h2 id="解决填充率问题"><a href="#解决填充率问题" class="headerlink" title="解决填充率问题"></a>解决填充率问题</h2><p>在<a href="https://blog.csdn.net/salvare/article/details/82432073" target="_blank" rel="noopener">第一篇</a>中介绍了填充率以及过度绘制，过度绘制会造成GPU片段管线处理压力，主要有两种方式来减少这种压力（片段管线主要是负责像素输出）：</p>
+<ol>
+<li>减少 shader 片段的复杂度，详细参考下面 “UI Shader和低配设备” 章节内容。</li>
+<li>减少需要采样的像素数量，比较常用的办法是采用多边形来替代四边形网格。</li>
+</ol>
+<p>由于内置的UI Shader都是标准通用的，一个很大问题就是填充率过高。这通常是因为大量的 UI 元素重叠，或者多个 UI 元素大面积占用屏幕，所有这些问题都会造成填充率过高。为了降低填充率，可以考虑以下的解决办法。</p>
+<h3 id="禁用不可见的-UI"><a href="#禁用不可见的-UI" class="headerlink" title="禁用不可见的 UI"></a>禁用不可见的 UI</h3><p>对已有 UI 设计影响最小的是禁用不可见的元素。很常见的问题是在一个不透明的背景后面放置的 UI 元素，这些元素因为被前面的不透明背景遮挡，所以是不可见的，但是 UGUI 还是会傻傻的去计算渲染它。解决这一问题最简单的方法就是将这些物体禁用，其他解决办法参考下面的“禁用画布”部分内容。<br>最后，对于希望隐藏的物体，不要通过设置 alpha = 0来实现，原因和上面一样，alpha = 0时 GPU 还是需要对这些物体进行计算，占用宝贵的渲染时间。节制使用 Graphic 组件，如果 UI 元素不需要 Graphic 组件，可以将之删除。</p>
+<h3 id="简化-UI-结构"><a href="#简化-UI-结构" class="headerlink" title="简化 UI 结构"></a>简化 UI 结构</h3><p>为了减少重构和渲染时间，非常重要的一点是减少 UI 元素数量，不要使用图形混合的方式来改变 UI 元素的色调，而是使用改变材质属性来代替，同样，不要创建一堆像文件夹一样的空物体来组织场景。</p>
+<h3 id="采用多边形网格"><a href="#采用多边形网格" class="headerlink" title="采用多边形网格"></a>采用多边形网格</h3><p>当渲染透明、镂空的UI时，采用多边形网格来替代四边形，原因是对于全透明的部分，UGUI的渲染系统依然会进行计算，并且回合当前缓冲区进行混合，这就会造成overdraw，避免这种情况的唯一方式就是采用多边形网格来显示UI。具体实现方式可以参考<a href="https://blog.csdn.net/salvare/article/details/82724338" target="_blank" rel="noopener">这里</a></p>
+<h3 id="禁用输出不可见的相机"><a href="#禁用输出不可见的相机" class="headerlink" title="禁用输出不可见的相机"></a>禁用输出不可见的相机</h3><p>如果显示一个不透明的全屏 UI，三维场景的渲染相机仍然会在 UI 之后进行渲染，渲染器并不知道全屏 UI 是否会遮挡整个三维场景。因此，如果显示一个完全不透明的全屏 UI，禁用所有被遮挡的三维渲染相机，消除这种无用的渲染，能够减轻 GPU 的渲染压力。如果 UI 没有遮挡住整个三维场景，你可能会想到将三维场景渲染到 RenderTexture，通过这样一次渲染代替持续不停地渲染，这样会产生一个问题，那就是不能显示场景动画内容，但是这个问题在大多数时候是可以接受的。 </p>
+<p><strong>如果一个 Canvas 设置为 Screen Space - Overlay，无论场景有多少个相机，它都会渲染到屏幕。</strong></p>
+<h3 id="大部分内容被遮挡的相机"><a href="#大部分内容被遮挡的相机" class="headerlink" title="大部分内容被遮挡的相机"></a>大部分内容被遮挡的相机</h3><p>许多全屏的 UI 并没有完全的将三维场景遮挡，而是留出一小块可见的区域，在这种情况下，一个更理想的方法是，只将可见的部分渲染到 RenderTexture，渲染到 RenderTexture 之后，将三维渲染相机禁用掉，最后将 RenderTexture 放到 UI 之后进行显示，来充当三维场景显示效果。</p>
+<h3 id="基于组合的-UI"><a href="#基于组合的-UI" class="headerlink" title="基于组合的 UI"></a>基于组合的 UI</h3><p>通常采用组合的方式来搭建 UI ，虽然这么做相对简单，而且具有良好可迭代性，但是由于Unity 采用透明渲染队列渲染 UI ，所以性能上并不高。考虑这样一个简单的UI：一个背景、一个Button、Button上有一些Text，因为透明渲染队列中的对象是按照深度从后向前进行排序，对于 Text 覆盖的像素，GPU必须首先采样背景贴图，然后采样 Button 的贴图，最后采样 Text 的图集贴图，总共需要进行三次采样。当 UI 变得越来越复杂的时候，越来越多的元素叠加到背景之上，采样数量增长将非常快。</p>
+<p>如果发现一个大的 UI 被填充率限制，那么最好的办法就是创建 UI 精灵，尽可能的将 UI 元素合并到背景图中，这样能够减少叠加在背景上的 UI 元素，但是这样会增加相应的工作量和增加项目图集的尺寸。</p>
+<p>这种优化策略也可以用到 UI 元素的创建上面，考虑一个商城的 UI 设计，它包含一个滚动的商品面板，每个商品的 UI元素都有一个边框、一个背景、以及一些图标和价格标签、名称、信息等。商店的 UI 还需要一个背景，但是由于商品 UI 需要再背景上面进行滚动，所以没有办法将 商品元素合并到背景图中，但是，商品元素的边界、图标、名称等可以合并到商品元素的背景图中，根据商品图标的大小和数量，可以节省很多填充率。</p>
+<p>这种组合策略也有几个缺点，这些进行合并的元素不能够进行重复利用，需要设计师进行额外的创建，这样会增加贴图的内存占用，尤其是在没有按需加载、卸载的时候。</p>
+<h3 id="UI-Shader和低配设备"><a href="#UI-Shader和低配设备" class="headerlink" title="UI Shader和低配设备"></a>UI Shader和低配设备</h3><p>UGUI 内置Shader支持遮罩、裁剪以及其他复杂的操作，由于这增加了复杂性，需要进行许多额外的计算，所以在一些低配设备上性能不如简单的 2D Shader，例如iPhone 4.</p>
+<p>对于一些低配设备，如果不需要遮罩、裁剪等一些特性，那么可以自定义一个简单的 Shader 来提高渲染性能，例如下面这个就是最简单的一个。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">Shader &quot;UI/Fast-Default&quot;</span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        [PerRendererData] _MainTex (&quot;Sprite Texture&quot;, 2D) = &quot;white&quot; &#123;&#125;</span><br><span class="line">        _Color (&quot;Tint&quot;, Color) = (1,1,1,1)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags</span><br><span class="line">        &#123; </span><br><span class="line">            &quot;Queue&quot;=&quot;Transparent&quot; </span><br><span class="line">            &quot;IgnoreProjector&quot;=&quot;True&quot; </span><br><span class="line">            &quot;RenderType&quot;=&quot;Transparent&quot; </span><br><span class="line">            &quot;PreviewType&quot;=&quot;Plane&quot;</span><br><span class="line">            &quot;CanUseSpriteAtlas&quot;=&quot;True&quot;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Cull Off</span><br><span class="line">        Lighting Off</span><br><span class="line">        ZWrite Off</span><br><span class="line">        ZTest [unity_GUIZTestMode]</span><br><span class="line">        Blend SrcAlpha OneMinusSrcAlpha</span><br><span class="line"></span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">        CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            #include &quot;UnityCG.cginc&quot;</span><br><span class="line">            #include &quot;UnityUI.cginc&quot;</span><br><span class="line">            </span><br><span class="line">            struct appdata_t</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex   : POSITION;</span><br><span class="line">                float4 color    : COLOR;</span><br><span class="line">                float2 texcoord : TEXCOORD0;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            struct v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 vertex   : SV_POSITION;</span><br><span class="line">                fixed4 color    : COLOR;</span><br><span class="line">                half2 texcoord  : TEXCOORD0;</span><br><span class="line">                float4 worldPosition : TEXCOORD1;</span><br><span class="line">            &#125;;</span><br><span class="line">            </span><br><span class="line">            fixed4 _Color;</span><br><span class="line">            fixed4 _TextureSampleAdd;</span><br><span class="line">            v2f vert(appdata_t IN)</span><br><span class="line">            &#123;</span><br><span class="line">                v2f OUT;</span><br><span class="line">                OUT.worldPosition = IN.vertex;</span><br><span class="line">                OUT.vertex = mul(UNITY_MATRIX_MVP, OUT.worldPosition);</span><br><span class="line"></span><br><span class="line">                OUT.texcoord = IN.texcoord;</span><br><span class="line">                </span><br><span class="line">                #ifdef UNITY_HALF_TEXEL_OFFSET</span><br><span class="line">                OUT.vertex.xy += (_ScreenParams.zw-1.0)*float2(-1,1);</span><br><span class="line">                #endif</span><br><span class="line">                </span><br><span class="line">                OUT.color = IN.color * _Color;</span><br><span class="line">                return OUT;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            fixed4 frag(v2f IN) : SV_Target</span><br><span class="line">            &#123;</span><br><span class="line">                return (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;</span><br><span class="line">            &#125;</span><br><span class="line">        ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Canvas-重构"><a href="#Canvas-重构" class="headerlink" title="Canvas 重构"></a>Canvas 重构</h2><p>为了展示 UI ，系统必须为它构建网格，这个过程包括执行动态布局、生成多边形、合并网格以减少 drawcall，这是一个多步骤处理过程，在<a href="https://blog.csdn.net/salvare/article/details/82432073" target="_blank" rel="noopener">前文</a>有更详细的描述。  </p>
+<p>Canvas 重构会产生性能影响主要是两方面的原因：</p>
+<ol>
+<li>如果需要绘制的 UI 元素数量很多，批处理计算将会非常耗时，这主要是因为元素排序和分析的消耗增长，与元素数量的增长是非线性的。</li>
+<li>如果 Canvas 经常变脏，那么过多的时间可能被消耗用来刷新变化很少的 Canvas。</li>
+</ol>
+<p>随着一个 Canvas 的 UI 元素数量增长，这两个问题变得更加严重。</p>
+<p><strong>重要提示：只要 Canvas 下的元素发生变化，Canvas 就必须重新进行批处理，这个过程需要重新分析 Canvas 下的每个 UI 元素，无论这个元素是否发生变化。这里说的变化，是指任何会对UI显示产生影响的变化，包括为SpriteRenderer指定Sprite、位移、缩放、旋转、Text组件文本内容变化等等。</strong></p>
+<h3 id="UI-元素排序"><a href="#UI-元素排序" class="headerlink" title="UI 元素排序"></a>UI 元素排序</h3><p>UI的构建是按照从后向前进的顺序，这个顺序是由物体在层级视图的排序决定的，在层级视图越靠上的元素排序越靠后。批处理就是按照层级视图从上到下的遍历物体，然后找到所有使用相同贴图、相同材质、并且这些物体之间没有被夹层分开（这里的夹层是指与这些物体材质不相同的物体，但是会覆盖这些物体）。夹层的出现将会强制中断批处理。</p>
+<p>就像在<a href="https://blog.csdn.net/salvare/article/details/82468713" target="_blank" rel="noopener">UGUI性能分析工具</a>章节中提到的，可以使用 UI Profiler 和 Frame Debugger 来检查夹层。</p>
+<p>这个问题最经常出现是当 Text 和 Sprite一个挨一个的放置：Text 组件的包围盒（这里是图形的包围盒，并不是 RectTransform 的边框）能够无形之中覆盖紧邻的 Sprite，因为多数 字符轮廓多边形是透明的。有两种方法可以解决这个为题：</p>
+<ol>
+<li>对 UI 元素进行重新排序，将夹层从可批处理的两个对象之间移走。</li>
+<li>移动物体的位置，使物体之间不再交叉覆盖。</li>
+</ol>
+<p>在UnityEditor中，通过启用 UnityFrameDebuger可以检测到这两种操作。通过在 UnityFrameDebugger 中观察 drawcall 数量，有可能找到一个 drawcall 数量最少的排序方式和位置。</p>
+<h3 id="分割画布"><a href="#分割画布" class="headerlink" title="分割画布"></a>分割画布</h3><p>除了一些非常简单的情况之外，通常将一个Canvas 分割开来是比较好的办法，将子元素移到子画布或者兄弟画布。</p>
+<p>兄弟画布最佳用处是在，UI存在一个区域必须与其他区域的深度进行分离，如果在所有层级之上、或者之下。（例如新手指引的箭头）<br>在大多数其他情况下，使用子画布更加方便，因为子画布的设置直接从父画布进行继承。<br>看上去将 UI 分割成多个 子画布是一种不错的做法，但是请记住，批处理是不能跨 Canvas 进行的，一个良好的UI设计需要再 最小化重构消耗 和 最小化drawcall 进行平衡。</p>
+<h3 id="通用准则"><a href="#通用准则" class="headerlink" title="通用准则"></a>通用准则</h3><p>因为当 Canvas 下的元素发生变化时，Canvas就需要重新批处理，所以通常最好是将 Canvas 分成至少两部分，此外，如果元素需要同时进行变化，最好将这些物体放到同一个Canvas下面，一个例子就是进度条和计时器，这些都依赖于相同的底层数据，需要同时进行变化，因此他们应该放到同一个画布上。  </p>
+<p>分成两部分的UI分别用两个Canvas 进行处理，一个 Canvas 用来放着静态的、不需要变化的物体，例如背景、Label，这样这个Canvas只需要在第一次显示时批处理一次，而后就不需要在进行重新批处理。另个 Canvas 用来放置 动态的、经常需要变化的物体，这可以确保通过这个Canvas 可以 重新批处理大部分的脏元素，如果动态元素数量变得非常多，可能需要将动态元素进行一步分组，例如不断变化的元素、偶尔变化的元素。</p>
+<p>实际上在实践中是相当困难的，尤其是将UI控件封装到 预制体时，许多UI通过将比较耗性能的控件拆分到子画布上来细分Canvas。</p>
+<h3 id="Unity5-2-和-优化批处理"><a href="#Unity5-2-和-优化批处理" class="headerlink" title="Unity5.2 和 优化批处理"></a>Unity5.2 和 优化批处理</h3><p>在Unity5.2版本中，批处理代码被大量重写，与Unity4.6、5.0、5.1版本相比，在性能上有了很大的提升，此外，在多核设备上，Unity将大部分处理移到工作线程上，总的来说，Unity5.2减少了将UI分割成大量子画布的需要，现在，在移动设备上许多 UI 可以只使用2、3个画布就可以实现性能要求。</p>
+<p>更多关于5.2的优化内容，可以参考<a href="http://blogs.unity3d.com/2015/09/07/making-the-ui-backend-faster/?_ga=2.233234141.2138003680.1535892227-1079978078.1535205694" target="_blank" rel="noopener">这篇文章</a>.</p>
+<h2 id="UGUI-的输入和射线检测"><a href="#UGUI-的输入和射线检测" class="headerlink" title="UGUI 的输入和射线检测"></a>UGUI 的输入和射线检测</h2><p>默认情况下，UGUI 使用 Graphic Raycaster 组件来处理射线检测，输入信息是通过 Standalone Input Manager 来处理，该组件可以处理鼠标和触摸输入。</p>
+<h3 id="移动设备上的鼠标输入检测错误（5-3）"><a href="#移动设备上的鼠标输入检测错误（5-3）" class="headerlink" title="移动设备上的鼠标输入检测错误（5.3）"></a>移动设备上的鼠标输入检测错误（5.3）</h3><p>在Unity5.4之前，每个活动的 Canvas 上都挂载一个 Graphic Raycaster组件，并且每帧都需要检测一次光标的位置，即使没有有效的触摸输入。无论什么平台都会发生这种情况，没有鼠标的 IOS 和 Android 平台，仍然会检测鼠标位置以及鼠标之下的 UI 元素，并确定是否需要发送 Hover 事件。 </p>
+<p>这是非常浪费 CPU 的，已经被证实浪费了 5%或者更多的 CPU 时间。</p>
+<p>这个问题在 Unity5.4 之后已经得到解决，在5.4之后，没有鼠标的设备将不再查询鼠标的位置，从而减少了不必要的射线检测。</p>
+<p>如果使用5.4之前的版本，强烈建议移动端开发者创建自己的 Input Manager 来替代 Standard Input System，实现方法也很简单，只需要将 Standard Input Manager 源码进行拷贝，然后将 ProcessMouseEvent 方法注释掉，同时将该方法的调用也注释掉即可。</p>
+<h3 id="射线检测优化"><a href="#射线检测优化" class="headerlink" title="射线检测优化"></a>射线检测优化</h3><p>Graphic Raycaster 组件的实现比较简单，检测所有 Raycast Target 设置为 true 的 Graphic 组件，对于每个射线检测目标，Raycaster会执行一系列测试，如果检测的目标通过所有的测试，则将该目标添加到 列表中（保存射线击中的物体）。</p>
+<p>Raycast 实现细节，上面说的一系列测试包括：</p>
+<ol>
+<li>如果目标是活动的、可以绘制的（包括 Graphic 组件）。</li>
+<li>如果输入位置在目标的 RectTransform 组件范围之内。</li>
+<li>如果检测目标包含 ICanvasRaycastFilter 组件，或者是该组件的子物体，那么需要 ICanvasRaycastFilter 允许进行射线检测。</li>
+<li>当所有的物体检测完毕之后，在击中列表中的目标按照深度进行排序，过滤掉反向的目标，过滤掉在摄像机之后的目标。</li>
+<li>如果设置了 blockingObjects选项，Graphic Raycaster 就可以检测 3D、2D的物理对象（Collider、2DCollider）。</li>
+<li>如果2D、3D blockingObjects 启用了，位于 raycast blocking 指定的层中的2D、3D物体，将会从击中列表中移除。</li>
+</ol>
+<p>最终确定下射线检测结果。</p>
+<h3 id="射线检测优化技巧"><a href="#射线检测优化技巧" class="headerlink" title="射线检测优化技巧"></a>射线检测优化技巧</h3><p>由于所有的射线检测必须由 Graphic Raycaster，所以最好的做法是只有那些必须接收UI事件的物体才开启 “Raycast Target”选项，需要进行射线检测的物体越少，层级也嵌套越少，则射线检测的速度越快。</p>
+<p>对于必须相应 UI 事件并且拥有多个可绘制对象的复合型 UI 控件，例如 Button 包括一个IMage、一个Text，更好的做法是在复合控件的根物体上添加一个 Raycast Target，当根物体收到 UI 事件之后，可以转发到各个感兴趣的组件。</p>
+<h3 id="嵌套深度和射线过滤"><a href="#嵌套深度和射线过滤" class="headerlink" title="嵌套深度和射线过滤"></a>嵌套深度和射线过滤</h3><p>在搜索射线过滤器的时候，每个 Graphic Raycaster 都会遍历 Transform 层次结构直到根物体。这种操作的成本与 Transform 的层次深度成正比，每个物体上的所有组件都必须进行测试，看看是否实现了 ICanvasRaycastFilter 接口，所以这不是一个便宜的操作。</p>
+<p>实现 ICanvasRaycastFilter 接口的标准组件有几个，比如 CanvasGroup、Image、Mask、RectMask2D，所以不能简单的消除遍历。</p>
+<h3 id="子画布和-OverrideSorting-属性"><a href="#子画布和-OverrideSorting-属性" class="headerlink" title="子画布和 OverrideSorting 属性"></a>子画布和 OverrideSorting 属性</h3><p>子画布的 overrideSorting 属性将导致图形射线检测停止往深层次遍历，如果可以在不引起排序或者射线检测问题的情况下启用它，那么可以使用它来降低射线检测层次结构遍历成本。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ugui/" rel="tag"># ugui</a>
+          
+            <a href="/tags/unity最佳实践/" rel="tag"># unity最佳实践</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/14/uguiprofiler/" rel="next" title="UGUI最佳实践(2)-UGUI性能分析工具">
+                <i class="fa fa-chevron-left"></i> UGUI最佳实践(2)-UGUI性能分析工具
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/14/UguiOptimiseControl/" rel="prev" title="UGUI最佳实践(4)-UI 控件优化">
+                UGUI最佳实践(4)-UI 控件优化 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#解决填充率问题"><span class="nav-number">1.</span> <span class="nav-text">解决填充率问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#禁用不可见的-UI"><span class="nav-number">1.1.</span> <span class="nav-text">禁用不可见的 UI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简化-UI-结构"><span class="nav-number">1.2.</span> <span class="nav-text">简化 UI 结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#采用多边形网格"><span class="nav-number">1.3.</span> <span class="nav-text">采用多边形网格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#禁用输出不可见的相机"><span class="nav-number">1.4.</span> <span class="nav-text">禁用输出不可见的相机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#大部分内容被遮挡的相机"><span class="nav-number">1.5.</span> <span class="nav-text">大部分内容被遮挡的相机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于组合的-UI"><span class="nav-number">1.6.</span> <span class="nav-text">基于组合的 UI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UI-Shader和低配设备"><span class="nav-number">1.7.</span> <span class="nav-text">UI Shader和低配设备</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Canvas-重构"><span class="nav-number">2.</span> <span class="nav-text">Canvas 重构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#UI-元素排序"><span class="nav-number">2.1.</span> <span class="nav-text">UI 元素排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分割画布"><span class="nav-number">2.2.</span> <span class="nav-text">分割画布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通用准则"><span class="nav-number">2.3.</span> <span class="nav-text">通用准则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unity5-2-和-优化批处理"><span class="nav-number">2.4.</span> <span class="nav-text">Unity5.2 和 优化批处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UGUI-的输入和射线检测"><span class="nav-number">3.</span> <span class="nav-text">UGUI 的输入和射线检测</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#移动设备上的鼠标输入检测错误（5-3）"><span class="nav-number">3.1.</span> <span class="nav-text">移动设备上的鼠标输入检测错误（5.3）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#射线检测优化"><span class="nav-number">3.2.</span> <span class="nav-text">射线检测优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#射线检测优化技巧"><span class="nav-number">3.3.</span> <span class="nav-text">射线检测优化技巧</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#嵌套深度和射线过滤"><span class="nav-number">3.4.</span> <span class="nav-text">嵌套深度和射线过滤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#子画布和-OverrideSorting-属性"><span class="nav-number">3.5.</span> <span class="nav-text">子画布和 OverrideSorting 属性</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="数据结构与算法 - 跳表在前面介绍了二分查找，它是一种时间复杂度为$O(\log{n})$的高效查询算法，因为它依赖于有序数组，因此存在一些局限性。我们知道链表不要求连续内存，但是它不支持随机访问，比如在链表 L 中，如果需要查找第 k 个元素，就需要从头开始挨个结点进行查找，那么应该如何提高这种有序链表查找效率呢，基于这个出发点，出现了跳表这种数据结构，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法 - 跳表">
+<meta property="og:url" content="https://huosk.github.io/2019/02/16/algorithm10-skiplist/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="数据结构与算法 - 跳表在前面介绍了二分查找，它是一种时间复杂度为$O(\log{n})$的高效查询算法，因为它依赖于有序数组，因此存在一些局限性。我们知道链表不要求连续内存，但是它不支持随机访问，比如在链表 L 中，如果需要查找第 k 个元素，就需要从头开始挨个结点进行查找，那么应该如何提高这种有序链表查找效率呢，基于这个出发点，出现了跳表这种数据结构，">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/02/16/algorithm10-skiplist/skiplist_bs.png">
+<meta property="og:image" content="https://huosk.github.io/2019/02/16/algorithm10-skiplist/skiplist.png">
+<meta property="og:image" content="https://huosk.github.io/2019/02/16/algorithm10-skiplist/skipnode.png">
+<meta property="og:image" content="https://huosk.github.io/2019/02/16/algorithm10-skiplist/skiplist_insert.png">
+<meta property="og:image" content="https://huosk.github.io/2019/02/16/algorithm10-skiplist/skiplist_insert_balence.png">
+<meta property="og:image" content="https://huosk.github.io/2019/02/16/algorithm10-skiplist/skiplist_insert_node_balence.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.776Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据结构与算法 - 跳表">
+<meta name="twitter:description" content="数据结构与算法 - 跳表在前面介绍了二分查找，它是一种时间复杂度为$O(\log{n})$的高效查询算法，因为它依赖于有序数组，因此存在一些局限性。我们知道链表不要求连续内存，但是它不支持随机访问，比如在链表 L 中，如果需要查找第 k 个元素，就需要从头开始挨个结点进行查找，那么应该如何提高这种有序链表查找效率呢，基于这个出发点，出现了跳表这种数据结构，">
+<meta name="twitter:image" content="https://huosk.github.io/2019/02/16/algorithm10-skiplist/skiplist_bs.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/02/16/algorithm10-skiplist/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>数据结构与算法 - 跳表 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/02/16/algorithm10-skiplist/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据结构与算法 - 跳表
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-16 10:22:23" itemprop="dateCreated datePublished" datetime="2019-02-16T10:22:23+08:00">2019-02-16</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数据结构与算法/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据结构与算法-跳表"><a href="#数据结构与算法-跳表" class="headerlink" title="数据结构与算法 - 跳表"></a>数据结构与算法 - 跳表</h1><p>在前面介绍了二分查找，它是一种时间复杂度为$O(\log{n})$的高效查询算法，因为它依赖于有序数组，因此存在一些局限性。我们知道链表不要求连续内存，但是它不支持随机访问，比如在链表 L 中，如果需要查找第 k 个元素，就需要从头开始挨个结点进行查找，那么应该如何提高这种有序链表查找效率呢，基于这个出发点，出现了跳表这种数据结构，</p>
+<a id="more"></a>
+<p>在介绍跳表之前，首先思考一下，对于一个有序链表，如何才能提高它的查找效率呢？</p>
+<p>参考前面的二分查找思想，是不是同样可以将数据的中点提取出来，这样不就可以直接访问到中点了？至于结果行不行的通，先看下如果采用这种方法时的查找过程，见下图。</p>
+<img src="/2019/02/16/algorithm10-skiplist/skiplist_bs.png">
+<p>可以看出，如果我们挨个遍历的的话需要遍历8个元素，通过提取二分中点来查询则需要经过6个元素，虽然两者相差不多，但是对于规模非常大的数据来说，两者的差距也越大。</p>
+<h2 id="跳表是什么"><a href="#跳表是什么" class="headerlink" title="跳表是什么"></a>跳表是什么</h2><p>跳表的思想和上面所说的比较类似，都是通过提取多层索引来提高元素访问效率，但是跳表是通过间隔 n 个元素作提取，而非提取中间点，如下图：</p>
+<img src="/2019/02/16/algorithm10-skiplist/skiplist.png">
+<h2 id="跳表的性能"><a href="#跳表的性能" class="headerlink" title="跳表的性能"></a>跳表的性能</h2><p>首先分析跳表的查询的时间复杂度：</p>
+<ol>
+<li>根据上图可以看出第1层索引的结点个数为 ${n}/{2^1}$，第2层结点个数为${n}/{2^2}$，依次类推第k层的结点个数为$n/{2^k}$。</li>
+<li>假设跳表有 h 层索引，最高层只有首尾两个结点，即$n/{2^h}=2$，可以得到$h=\log_2{n}-1$，加上原链表本身一共 $\log_2{n}$ 层。</li>
+<li>那么每层的复杂度是多少呢？即要遍历多少结点，因为经过上层的索引之后，就能够锁定查找的目标在下层的范围，所以每层最多遍历3个结点。</li>
+<li>因此通过跳表查找元素的时间复杂度为：$T(n)= O(3\log_2{n}) = O(\log_2{n})$。</li>
+</ol>
+<p>跳表的空间复杂度：</p>
+<p>通过上面计算，知道第k层的节点个数为$n/{2^k}$，根据下面的几何级数求和公式，(h=$\log_2n-1$)可以计算出总结点个数为：n-2，因此跳表的空间复杂度为O(n)。</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\sum_{k=0}^{h}x^k &= \frac{x^{h+1}-1}{x-1}
+\end{aligned}</script><p>这里需要强调的是，虽然空间复杂度为O（n），但是索引结点只存储结点指针，并不存储数据内容，在实际开发中，链表存储的数据内容通常是非常大的，此时就不必太强调空间复杂度。</p>
+<h2 id="跳表的实现"><a href="#跳表的实现" class="headerlink" title="跳表的实现"></a>跳表的实现</h2><p>与链表不同，跳表的节点还需要存储它的索引信息，下面是节点类设计：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 跳表类型</span></span><br><span class="line">public class SkipList&lt;T&gt;</span><br><span class="line">    <span class="keyword">where</span> T: IComparable&lt;T&gt;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 头结点</span></span><br><span class="line">    <span class="keyword">private</span> SkipListNode head;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 尾节点</span></span><br><span class="line">    <span class="keyword">private</span> SkipListNode tail;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 最大层数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> levelCount;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 跳表节点</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">SkipListNode</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 节点包含的层</span></span><br><span class="line">        <span class="keyword">public</span> SkipLevel[] levels;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 后退节点</span></span><br><span class="line">        <span class="keyword">public</span> SkipListNode backward;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 节点数据</span></span><br><span class="line">        <span class="keyword">public</span> T item;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 跳转层</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">SkipLevel</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 前进节点</span></span><br><span class="line">        <span class="keyword">public</span> SkipListNode forward;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>SkipList 表示跳表数据类型，包含头结点引用和尾节点引用。<br>SkipListNode 表示链表的节点，每个节点都可能包含多层索引和后退节点，索引用 SkipLevel 表示，其中 forward 表示节点在该层跳转的节点，可以通过下图来帮助理解。</p>
+<img src="/2019/02/16/algorithm10-skiplist/skipnode.png">
+<h3 id="查找操作"><a href="#查找操作" class="headerlink" title="查找操作"></a>查找操作</h3><p>查找应该从头结点的最顶层索引开始，递归的遍历前进节点，因为跳表的元素都是有序排序的，所以当节点的前进节点大于要查找的元素时，就需要进入下层索引进行查找，当所有层都遍历完成之后，得到了一个边界节点，需要进一步比较确认，它的前进节点是不是要查找的元素，详细代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 查找指定节点</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> SkipListNode <span class="title">FindNode</span>(<span class="params">T target</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="comment">// 从头结点开始</span></span><br><span class="line">   <span class="keyword">var</span> node = head;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 从最顶层索引开始查找</span></span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = levelCount - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">while</span> (node.levels[i] != <span class="literal">null</span> &amp;&amp; node.levels[i].forward.item.CompareTo(target)&lt;<span class="number">0</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="comment">// 跳转到该层的前进节点</span></span><br><span class="line">           node = node.levels[i].forward;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 循环退出，说明 node 的下一个节点，要么大于查找目标，要么等于查找目标</span></span><br><span class="line"></span><br><span class="line">   <span class="comment">// 进一步判断是否为查找目标</span></span><br><span class="line">   <span class="keyword">if</span> (node.levels[<span class="number">0</span>] != <span class="literal">null</span> &amp;&amp; node.levels[<span class="number">0</span>].forward.item.CompareTo(target) == <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">return</span> node.levels[<span class="number">0</span>].forward;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">else</span></span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="插入操作"><a href="#插入操作" class="headerlink" title="插入操作"></a>插入操作</h3><p>向跳表中插入元素时，必须同时更新索引，如果不更新，就可能造成两个索引节点之间节点过多，查询时间复杂度也会退化为O(n)。</p>
+<img src="/2019/02/16/algorithm10-skiplist/skiplist_insert.png">
+<p>为了解决该问题，最直接的办法就是每次插入新元素之后，把插入位置之后的索引重新进行计算，但是这样在效率上就会比较低。有一种比较折中的办法，既能够很大程度的降低跳表退化概率，同时在插入效率上也比较高，该方法是在插入时，随机的选取一个层，在该层和之下层中插入索引结点。</p>
+<img src="/2019/02/16/algorithm10-skiplist/skiplist_insert_balence.png">
+<p>结合上图理解一下跳表的插入步骤：</p>
+<ol>
+<li>随机选取层索引，下面更新选取层和其下的所有层，上面是[0,2]。</li>
+<li>找到各层需要插入的位置，上面各层都是结点5。</li>
+<li>更新各层的索引的前进结点，在上图中，是将各层结点5的前进结点指向新结点6，将6的前进节点指向结点5之前的前进结点。</li>
+<li>更新后退结点。</li>
+</ol>
+<p>结点属性的变化关系如下图：</p>
+<img src="/2019/02/16/algorithm10-skiplist/skiplist_insert_node_balence.png">
+<p>代码实现如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Insert</span>(<span class="params">T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="comment">// 获取随机索引层[1,MAX_LEVEL_COUNT]</span></span><br><span class="line">   <span class="keyword">int</span> level = RandomLevel();</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 创建新节点</span></span><br><span class="line">   SkipListNode node = <span class="keyword">new</span> SkipListNode();</span><br><span class="line">   node.backward = head;</span><br><span class="line">   node.levels = <span class="keyword">new</span> SkipLevel[level];</span><br><span class="line">   node.item = t;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 在每层中，找到要插入的位置（临界结点），</span></span><br><span class="line">   <span class="comment">// 并且暂时借用新节点的levels,将找到的节点存到其中</span></span><br><span class="line">   SkipListNode temp = head;</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = level<span class="number">-1</span>; i &gt;= <span class="number">0</span>; i--)</span><br><span class="line">   &#123;</span><br><span class="line">       node.levels[i] = <span class="keyword">new</span> SkipLevel();</span><br><span class="line">       <span class="keyword">while</span> (temp != <span class="literal">null</span> &amp;&amp; temp.levels!= <span class="literal">null</span> &amp;&amp;</span><br><span class="line">              temp.levels[i] != <span class="literal">null</span> &amp;&amp; </span><br><span class="line">              temp.levels[i].forward != <span class="literal">null</span> &amp;&amp; </span><br><span class="line">              temp.levels[i].forward.item.CompareTo(t) &lt; <span class="number">0</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           temp = temp.levels[i].forward;</span><br><span class="line">       &#125;</span><br><span class="line">       node.levels[i].forward = temp;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 然后设置临界结点和新结点的前进结点和后退节点</span></span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; level;i++)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="comment">// 要插入的临界结点</span></span><br><span class="line">       <span class="keyword">var</span> bound = node.levels[i].forward;</span><br><span class="line">       temp = bound.levels[i].forward;</span><br><span class="line"></span><br><span class="line">       <span class="comment">// 设置前进结点</span></span><br><span class="line">       bound.levels[i].forward = node;</span><br><span class="line">       node.levels[i].forward = temp;</span><br><span class="line"></span><br><span class="line">       <span class="comment">// 设置后退结点</span></span><br><span class="line">       node.backward = bound;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span>(temp != <span class="literal">null</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           temp.backward = node;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span>(node.levels[<span class="number">0</span>].forward == <span class="literal">null</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       tail = node;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在选择索引层时使用了随机算法，为了保证随机结果能够均匀分布，将随机算法实现如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">RandomLevel</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">int</span> level = <span class="number">1</span>;</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; MAXLEVELCOUNT; i++)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">this</span>.random.Next() % <span class="number">2</span> == <span class="number">0</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           level++;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> level;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h2><p>在理解了跳表的插入过程之后，删除操作也就很好理解了，除了要删除源链表的结点之外，还要删除该节点对应的索引节点，代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Remove</span>(<span class="params">T t</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   SkipListNode[] needUpdates = <span class="keyword">new</span> SkipListNode[<span class="keyword">this</span>.levelCount];</span><br><span class="line">   SkipListNode temp = <span class="keyword">this</span>.head;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 查找边界点:</span></span><br><span class="line">   <span class="comment">// A[i] &lt; t,A[i+1]&gt;= t，即找到A[i]之后</span></span><br><span class="line">   <span class="comment">// 需要进一步判断就是否为要删除的值</span></span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="keyword">this</span>.levelCount - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">while</span> (temp != <span class="literal">null</span> &amp;&amp; temp.GetForward(i) != <span class="literal">null</span> &amp;&amp; temp.GetForward(i).item.CompareTo(t) &lt; <span class="number">0</span>)</span><br><span class="line">       &#123;</span><br><span class="line">           temp = temp.levels[i].forward;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       needUpdates[i] = temp;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 源链表中的节点，如果该值与要删除的不相等，说明要删除的元素在跳表中不存在</span></span><br><span class="line">   <span class="keyword">var</span> node = temp.GetForward(<span class="number">0</span>);</span><br><span class="line">   <span class="keyword">if</span> (node != <span class="literal">null</span> &amp;&amp; node.item.CompareTo(t) == <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="comment">// A-&gt;B-&gt;C，更新为：A-&gt;C，其中B为要删除的结点</span></span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="keyword">this</span>.levelCount; i++)</span><br><span class="line">       &#123;</span><br><span class="line">           SkipListNode forward = needUpdates[i].levels[i].forward;</span><br><span class="line">           <span class="keyword">if</span> (forward.item.CompareTo(t) == <span class="number">0</span>)</span><br><span class="line">           &#123;</span><br><span class="line">               needUpdates[i].levels[i].forward = forward.levels[i].forward;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>上面介绍了跳表一些常用操作和实现，相对于之后要介绍的二叉平衡树要简单，在查询、插入等操作上效率也非常高。在开源K-V<br>数据库 Redis 中就使用了跳表，感兴趣的可以<a href="https://github.com/antirez/redis/blob/unstable/src/t_zset.c" target="_blank" rel="noopener">学习一下</a>，最后完整的代码在<a href="https://github.com/huosk/Algo/blob/master/CSharp/Collections/SkipList.cs" target="_blank" rel="noopener">这里</a>。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/13/binarysearch/" rel="next" title="数据结构与算法 - 二分查找">
+                <i class="fa fa-chevron-left"></i> 数据结构与算法 - 二分查找
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/02/19/EnsureOverflowInCSharp/" rel="prev" title="C#中的数值溢出检查">
+                C#中的数值溢出检查 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构与算法-跳表"><span class="nav-number">1.</span> <span class="nav-text">数据结构与算法 - 跳表</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#跳表是什么"><span class="nav-number">1.1.</span> <span class="nav-text">跳表是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跳表的性能"><span class="nav-number">1.2.</span> <span class="nav-text">跳表的性能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跳表的实现"><span class="nav-number">1.3.</span> <span class="nav-text">跳表的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#查找操作"><span class="nav-number">1.3.1.</span> <span class="nav-text">查找操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#插入操作"><span class="nav-number">1.3.2.</span> <span class="nav-text">插入操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#删除操作"><span class="nav-number">1.4.</span> <span class="nav-text">删除操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最后"><span class="nav-number">1.5.</span> <span class="nav-text">最后</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

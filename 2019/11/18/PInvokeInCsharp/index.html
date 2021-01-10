@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="在做Unity开发时，经常会需要调用 C/C++ 编译的非托管库，包括目前常见的 Lua 库，比如 ToLua、XLua 都是通过 C 封装完接口，然后编译成各个平台的动态库，才能在Unity中进行使用，P/Invoke 是.Net 平台提供的非托管与托管通信的一种服务，通过它能够非常方便的完成非托管库的接入，当然这个过程中有很多需要注意的地方，希望通过阅读本文，能够少走一些弯路。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C#与非托管DLL进行交互">
+<meta property="og:url" content="https://huosk.github.io/2019/11/18/PInvokeInCsharp/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="在做Unity开发时，经常会需要调用 C/C++ 编译的非托管库，包括目前常见的 Lua 库，比如 ToLua、XLua 都是通过 C 封装完接口，然后编译成各个平台的动态库，才能在Unity中进行使用，P/Invoke 是.Net 平台提供的非托管与托管通信的一种服务，通过它能够非常方便的完成非托管库的接入，当然这个过程中有很多需要注意的地方，希望通过阅读本文，能够少走一些弯路。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/11/18/PInvokeInCsharp/pinvoke.jpg">
+<meta property="og:image" content="https://huosk.github.io/2019/11/18/PInvokeInCsharp/stackvsheap.jpg">
+<meta property="og:image" content="https://huosk.github.io/2019/11/18/PInvokeInCsharp/refheap.jpg">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.820Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C#与非托管DLL进行交互">
+<meta name="twitter:description" content="在做Unity开发时，经常会需要调用 C/C++ 编译的非托管库，包括目前常见的 Lua 库，比如 ToLua、XLua 都是通过 C 封装完接口，然后编译成各个平台的动态库，才能在Unity中进行使用，P/Invoke 是.Net 平台提供的非托管与托管通信的一种服务，通过它能够非常方便的完成非托管库的接入，当然这个过程中有很多需要注意的地方，希望通过阅读本文，能够少走一些弯路。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/11/18/PInvokeInCsharp/pinvoke.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/11/18/PInvokeInCsharp/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>C#与非托管DLL进行交互 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/11/18/PInvokeInCsharp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">C#与非托管DLL进行交互
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-18 11:06:56" itemprop="dateCreated datePublished" datetime="2019-11-18T11:06:56+08:00">2019-11-18</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/c/" itemprop="url" rel="index"><span itemprop="name">c#</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在做Unity开发时，经常会需要调用 C/C++ 编译的非托管库，包括目前常见的 Lua 库，比如 ToLua、XLua 都是通过 C 封装完接口，然后编译成各个平台的动态库，才能在Unity中进行使用，P/Invoke 是.Net 平台提供的非托管与托管通信的一种服务，通过它能够非常方便的完成非托管库的接入，当然这个过程中有很多需要注意的地方，希望通过阅读本文，能够少走一些弯路。</p>
+<a id="more"></a>
+<h2 id="PInvoke介绍"><a href="#PInvoke介绍" class="headerlink" title="PInvoke介绍"></a>PInvoke介绍</h2><p>PInvoke是.Net Framework提供的一项服务，它使得托管代码与非托管之间的交互变得非常简单，一般来说，只需要声名一个方法并指定<code>System.Runtime.InteropServicesDllImportAttribute</code>属性，就可以调用非托管方法。先看一个最简单的例子：  </p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Runtime.InteropServices;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 导入user32.dll中的一个函数</span></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"user32.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">MessageBox</span>(<span class="params">IntPtr hWnd, String text, String caption, <span class="keyword">int</span> options</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="keyword">string</span>[] args</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="comment">// 调用导入的非托管函数</span></span><br><span class="line">        MessageBox(IntPtr.Zero, <span class="string">"Command-line message box"</span>, <span class="string">"Attention!"</span>, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后我们分析以下上面的例子：</p>
+<ul>
+<li>首先引入<code>System.Runtime.InteropServices</code>，涉及本机交互的API多数都在此命名空间。</li>
+<li>为方法指定<code>DllImport</code> 特性。 此特性至关重要，因为它告诉CLR要加载非托管 DLL，以及如何加载DLL。</li>
+<li>定义了一个托管方法 MessageBox ，该方法的签名与非托管方法相匹配。 可以看到，声明中包含一个新关键字 <code>extern</code>，告诉运行时这是一个外部方法。调用该方法时，CLR在 DllImport 指定的 DLL 内查找该方法。  </li>
+</ul>
+<p>CLR通过PInvoke服务调用非托管函数：  </p>
+<img src="/2019/11/18/PInvokeInCsharp/pinvoke.jpg">
+<p>PInvoke调用非托管函数流程：</p>
+<ol>
+<li>定位包含非托管函数的DLL，并将DLL加载到内存当中。</li>
+<li>定位非托管方法的地址。</li>
+<li>参数传递以及函数返回值。</li>
+</ol>
+<blockquote>
+<p>只有第一次调用非托管方法时，会定位和加载DLL</p>
+</blockquote>
+<h2 id="定位DLL存放地址"><a href="#定位DLL存放地址" class="headerlink" title="定位DLL存放地址"></a>定位DLL存放地址</h2><p>在指定库名称的时候，我们比较关心CLI内部如何去查找该库，这个过程是通过<code>LoadLibrary</code>来实现，不同的平台有不同的加载策略，对于Windows平台来说按照以下顺序进行查找：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">DllImport(<span class="meta-string">"kernel32.dll"</span>, CharSet = CharSet.Auto, BestFitMapping = false, SetLastError = true)</span>]</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> IntPtr <span class="title">LoadLibrary</span>(<span class="params">String fileName</span>)</span>;</span><br><span class="line"></span><br><span class="line">[<span class="meta">ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)</span>]</span><br><span class="line">[<span class="meta">DllImport(<span class="meta-string">"kernel32.dll"</span>, SetLastError = true)</span>]</span><br><span class="line">[<span class="meta">return: MarshalAs(UnmanagedType.Bool)</span>]</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">bool</span> <span class="title">FreeLibrary</span>(<span class="params">IntPtr hModule</span>)</span>;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>当前进程Exe文件所在目录。</li>
+<li>当前目录，即<code>Environment.CurrentDirectory</code>。</li>
+<li>Windows系统目录，一般是<code>C/Windows/System32</code>，可以通过<code>GetSystemDirectory(kernel32.dll)</code>或者<code>Environment.GetFolderPath(Environment.SpecialFolder.System)</code>函数获取此目录。</li>
+<li>Windows 16位系统目录，一般是<code>C/Windows/System</code>。</li>
+<li>Windows目录，可以通过<code>GetWindowsDirectory(kernel32.dll)</code>或者<code>Environment.GetEnvironmentVariable(&quot;windir&quot;)</code>函数获取此目录。</li>
+<li><strong>PATH</strong>系统变量列出的目录中。</li>
+</ol>
+<p>知道要查找的目录之后，还需要知道动态库的名称，不同的平台对名称的处理策略不同。  </p>
+<ul>
+<li>Windows平台会对库名称附加<code>.dll</code>后缀。  </li>
+<li>Linux会使用<code>lib</code>前缀和<code>.so</code>后缀。  </li>
+<li>Mac OSX使用<code>lib</code>前缀和<code>dylib</code>后缀。</li>
+</ul>
+<p>根据这些规则，在使用DllImport时，我们不应该指定前缀或者后缀，而是只是用Dll名称，例如:</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">DllImport(<span class="meta-string">"MyLib"</span>, EntryPoint = <span class="meta-string">"CreateEvent"</span>)</span>]</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> IntPtr <span class="title">CreateEvent</span>(<span class="params">IntPtr p, <span class="keyword">bool</span> mreset, <span class="keyword">bool</span> initstate, <span class="keyword">string</span> name</span>)</span>;</span><br></pre></td></tr></table></figure>
+<p>这样我们只需要为Windows平台提供MyLib.dll，Linux平台提供libMyLib.so，Mac OSX提供libMyLib.dylib文件，然后在不同的平台，CLI就能找到对应平台的库。  </p>
+<p><strong>需要注意的是：如果提供的库名称中包含点号”.”，就不会附加后缀，例如”mylib-2.0.dll”如果指定”mylib-2.0”就不会附加后缀，从而引发DllNotFoundException。</strong></p>
+<h2 id="定位非托管函数地址"><a href="#定位非托管函数地址" class="headerlink" title="定位非托管函数地址"></a>定位非托管函数地址</h2><p>在找到DLL之后，还需要找到函数在DLL的地址，该过程通过<code>GetProcAddress</code>来实现，该方法需要传递函数的名称，DllImport有两种方式可以获取函数名称，第一种通过EntryPoint指定；第二种是如果没有指定EntryPoint参数，则采用声名的托管函数名称。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//GetProcAddress包含在Kernel32.dll中，导入方式如下：  </span></span><br><span class="line"></span><br><span class="line">[<span class="meta">DllImport(<span class="meta-string">"kernel32.dll"</span>)</span>]</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> IntPtr <span class="title">GetProcAddress</span>(<span class="params">IntPtr hModule, String procName</span>)</span>;</span><br></pre></td></tr></table></figure>
+<h2 id="DllImportAttribute其他参数介绍"><a href="#DllImportAttribute其他参数介绍" class="headerlink" title="DllImportAttribute其他参数介绍"></a>DllImportAttribute其他参数介绍</h2><p>在使用DllImport导入非托管函数时，除了上面说介绍过的Dll名称，<code>EntryPoint</code>之外，还有一些比较重要的参数，其中包括<code>CallingConvention</code>和<code>CharSet</code>。</p>
+<ul>
+<li>CallingConvention ：指定了传递方法参数时的约定，必须和非托管保持一致，在Windows平台下该值默认是WinAPI，对应非托管是<code>__stdcall</code>。</li>
+<li>CharSet ：改参数指定了向非托管封送方法名(入口名称)和字符串参数的编码格式，默认值是Ansi，即按照ASCII进行编码，CharSet.Unicode按照UTF-16进行编码。</li>
+<li>BestFitMapping ： 如果CharSet设置为CharSet.Ansi，封送处理器会采用近似匹配，将传递Unicode字符串映射到ASII编码，例如对于版权符号©会转换成字符’C’，对于没有映射的Unicode字符则转换成问号(?)，默认为True。</li>
+<li>ThrowOnUnmappableChar ： 如果为True，当Unicode字符没有成功映射为ANSI字符时，会抛出异常，而非转换成问号“？”。</li>
+</ul>
+<h2 id="数据封送"><a href="#数据封送" class="headerlink" title="数据封送"></a>数据封送</h2><p>托管内存和非托管内存是完全分开的，所以两者如果需要进行数据传输，就需要一个“信使”-互操作封送拆装器（Interop Mashaler）来传递，它负责将托管参数传递给非托管，并将函数返回值传递给托管，在调用一个含参的非托管方法时，封送的过程大致如下：  </p>
+<ol>
+<li>CLR分配一块非托管内存。</li>
+<li>将托管数据拷贝到刚分配的内存。</li>
+<li>执行非托管方法，并将刚分配的非托管内存传递给函数。</li>
+<li>将非托管内存拷贝回托管内存。</li>
+</ol>
+<p>数据封送按照数据的流动方向可以分为两类：</p>
+<ul>
+<li>参数传递时：托管内存—&gt;非托管内存</li>
+<li>函数返回值：非托管内存—&gt;托管内存  </li>
+</ul>
+<p>无论数据如何传输，发送方的发送类型和接收方的接受类型，都必须具备相同的表示，即内存表示应该相同，例如：非托管函数形参为int类型，那么托管向该函数传递参数必须是32bit System.Int类型。</p>
+<p>按照封送方式划分：</p>
+<ul>
+<li>按值封送  </li>
+<li>按引用封送  </li>
+</ul>
+<h3 id="Blittable类型"><a href="#Blittable类型" class="headerlink" title="Blittable类型"></a>Blittable类型</h3><p>上面提到，封送的数据必须在发送方和接受方具备相同的表示，CLR大多数数据类型在托管和非托管内存中都有一个通用的表示，封送时不需要的特殊处理，这些类型被称为<a href="https://en.wikipedia.org/wiki/Blittable_types" target="_blank" rel="noopener">blittable</a>类型，因为它们在托管和非托管代码之间传递时不需要转换。而与Blittable类型相对的是Non-Blittable类型，封送拆装器必须做一些特殊处理才能封送Non-Blittable类型。</p>
+<p>P/Invoke的返回值必须是Blittable类型，不支持Non-Blittable类型的返回值。</p>
+<p>Blittable类型包括以下几种：</p>
+<ul>
+<li>byte</li>
+<li>sbyte</li>
+<li>short</li>
+<li>ushort</li>
+<li>int</li>
+<li>uint</li>
+<li>long</li>
+<li>ulong</li>
+<li>IntPtr</li>
+<li>UIntPtr</li>
+<li>float</li>
+<li>double</li>
+<li>上述类型的一维数组</li>
+<li>只包含上述类型的结构体</li>
+</ul>
+<h3 id="内存复制与内存固定"><a href="#内存复制与内存固定" class="headerlink" title="内存复制与内存固定"></a>内存复制与内存固定</h3><p>封送数据时，互操作封送拆收器(interop    marshaler)可以复制或固定正在封送的数据。复制将数据副本从非托管/托管移动到托管/非托管；锁定是保持对象内存在垃圾回收时不会重定位，封送拆收器通过固定减小复制的开销来提高性能。要封送数据的类型决定了是采用复制还是固定<br>下图显示从托管内存向非托管内存复制值类型和复制按引用传递的类型之间的差异。  </p>
+<img src="/2019/11/18/PInvokeInCsharp/stackvsheap.jpg">
+<hr>
+<p>如果函数参数时按值传递的，直接将数据内存拷贝到非托管栈上；如果函数参数是按引用传递的，则将引用对象的地址指针拷贝到非托管栈上。引用传递参数（ref标记）根据ref的类型选择按传值还是按引用传递。  </p>
+<img src="/2019/11/18/PInvokeInCsharp/refheap.jpg">
+<h3 id="封送字符串"><a href="#封送字符串" class="headerlink" title="封送字符串"></a>封送字符串</h3><p>什么时候回封送字符串：  </p>
+<ul>
+<li>调用GetProcAddress时，封送方法名。</li>
+<li>调用非托管参数时，传递字符串类型参数。</li>
+<li>封送的结构体/类中包含字符串成员。</li>
+</ul>
+<p>如何封送字符串? 有两种方式可以想非托管封送字符串：  </p>
+<ul>
+<li>System.String</li>
+<li>System.Text.StringBuilder  </li>
+</ul>
+<p>两者的封送行为基本相同，封送拆装器会复制字符串，并将字符串转换为指定的编码格式，然后传输给非托管函数。两者非常重要区别在于string类型是不可变的，所以当调用结束时，不能将更改后的值复制回托管内存。<br>在封送时，可以使用MarshalAS()属性指定封送方式，见下表，其中StringBuilder只能允许<code>LPStr</code>、<code>LPWStr</code>、<code>LPTStr</code>。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>封送方式</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UnmanagedType.BStr</td>
+<td>固定长度Unicode字符</td>
+</tr>
+<tr>
+<td>UnmanagedType.AnsiBStr</td>
+<td>固定长度的Ansi字符串</td>
+</tr>
+<tr>
+<td>UnmanagedType.LPStr</td>
+<td>指向以 null 终止的Ansi字符数组指针</td>
+</tr>
+<tr>
+<td>UnmanagedType.LPWStr</td>
+<td>指向以 null 终止的Unicode字符数组指针</td>
+</tr>
+<tr>
+<td>UnmanagedType.LPTStr</td>
+<td>指向以 null 终止的平台相关字符数组的指针</td>
+</tr>
+<tr>
+<td>UnmanagedType.LPUTF8Str</td>
+<td>指向UTF8编码的字符串的指针</td>
+</tr>
+<tr>
+<td>UnmanagedType.ByValTStr</td>
+<td>用于结构体内定长字符数组；数组的类型（Ansi、Unicode）由结构体的CharSet确定</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>非托管定义：  </p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> StringInfoA</span><br><span class="line">&#123;  </span><br><span class="line">   <span class="keyword">char</span> *    f1;  </span><br><span class="line">   <span class="keyword">char</span>      f2[<span class="number">256</span>];  </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> StringInfoW</span><br><span class="line">&#123;  </span><br><span class="line">   WCHAR *   f1;  </span><br><span class="line">   WCHAR     f2[<span class="number">256</span>];  </span><br><span class="line">   BSTR      f3;  </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> StringInfoT</span><br><span class="line">&#123;  </span><br><span class="line">   TCHAR *   f1;  </span><br><span class="line">   TCHAR     f2[<span class="number">256</span>];  </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>托管Wrapper定义：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">StructLayout(LayoutKind.Sequential, CharSet=CharSet.Ansi)</span>]  </span><br><span class="line"><span class="keyword">struct</span> StringInfoA</span><br><span class="line">&#123;  </span><br><span class="line">   [<span class="meta">MarshalAs(UnmanagedType.LPStr)</span>] <span class="keyword">public</span> String f1;  </span><br><span class="line">   [<span class="meta">MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)</span>] <span class="keyword">public</span> String f2;  </span><br><span class="line">&#125;  </span><br><span class="line"></span><br><span class="line">[<span class="meta">StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)</span>]  </span><br><span class="line"><span class="keyword">struct</span> StringInfoW</span><br><span class="line">&#123;  </span><br><span class="line">   [<span class="meta">MarshalAs(UnmanagedType.LPWStr)</span>] <span class="keyword">public</span> String f1;  </span><br><span class="line">   [<span class="meta">MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)</span>] <span class="keyword">public</span> String f2;  </span><br><span class="line">   [<span class="meta">MarshalAs(UnmanagedType.BStr)</span>] <span class="keyword">public</span> String f3;  </span><br><span class="line">&#125;  </span><br><span class="line"></span><br><span class="line">[<span class="meta">StructLayout(LayoutKind.Sequential, CharSet=CharSet.Auto)</span>]  </span><br><span class="line"><span class="keyword">struct</span> StringInfoT</span><br><span class="line">&#123;  </span><br><span class="line">   [<span class="meta">MarshalAs(UnmanagedType.LPTStr)</span>] <span class="keyword">public</span> String f1;  </span><br><span class="line">   [<span class="meta">MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)</span>] <span class="keyword">public</span> String f2;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在某些情况下，必须将定长字符缓冲区传递到要操作的非托管代码中。在这种情况下，只传递字符串将不起作用，因为被调用方不能修改所传递缓冲区的内容。 即使通过引用传递字符串，仍无法将缓冲区初始化为给定大小。  </p>
+<p>解决方法是将 StringBuilder 作为参数而非字符串进行传递。被调用方可以修改 StringBuilder，前提是不超过 StringBuilder 的容量。还可以初始化为固定长度。例如，如果将 StringBuilder 缓冲区初始化为 N 容量，则封送处理程序提供大小为 (N+ 1) 个字符的缓冲区。 +1 是因为非托管字符串以 null 结尾，而 StringBuilder 却不不是，所以需要 +1 字节存放null终结符。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//c函数声名：</span></span><br><span class="line"><span class="keyword">char</span>* strncpy (<span class="keyword">char</span> *dest, <span class="keyword">const</span> <span class="keyword">char</span> *src, size_t n);</span><br><span class="line"></span><br><span class="line"><span class="comment">//托管函数声名：</span></span><br><span class="line">[<span class="meta">DllImport(<span class="meta-string">"libc.so"</span>)</span>]</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">strncpy</span>(<span class="params">StringBuilder dest,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">string</span> src, <span class="keyword">uint</span> n</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">UseStrncpy</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    StringBuilder sb = <span class="keyword">new</span> StringBuilder(<span class="number">256</span>);</span><br><span class="line">    strncpy(sb, <span class="string">"this is the source string"</span>, sb.Capacity);</span><br><span class="line">    Console.WriteLine(sb.ToString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<font color="red">如果需要多次调用StringBuilder，在调用之前，需要调用EnsureCapacity，因为由于内存优化会造成Capacity可能缩小，从而造成不可预期的结果。</font>
+
+<h3 id="封送System-Boolean"><a href="#封送System-Boolean" class="headerlink" title="封送System.Boolean"></a>封送System.Boolean</h3><p>System.Boolean是比较特殊的一个类型，当它作为类或者结构体的成员时，默认按UnmanagedType.Bool（int，0-false，非0-true）封送；当它作为函数的参数时，默认按UnmanagedType.VariantBool（short，0-false，1-true）封送。可以通过MarshaalAs显示指定封送行为，来替换默认的封送行为，可选参数如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>封送行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UnmanagedType.Bool</td>
+<td>int,0-false,非0-true</td>
+</tr>
+<tr>
+<td>UnmanagedType.VariantBool</td>
+<td>short,0-false,1-true</td>
+</tr>
+<tr>
+<td>UnmanagedType.U1</td>
+<td>byte,0-false,1-true</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="封送类和结构体"><a href="#封送类和结构体" class="headerlink" title="封送类和结构体"></a>封送类和结构体</h3><p>类对象的内存是在托管堆上分配并由垃圾回收器进行管理，因此不能将类对象进行按值封送，只能按引用进行封送。此外在使用类封送时，还有以下几点需要注意：</p>
+<ol>
+<li>类默认的字段排序是按照 LayoutKind.Auto，这是一种不确定的排序方式，需要指定LayoutKind.Sequential 或者 LayoutKind.Exlict.</li>
+<li>对于类类型，默认只能从托管内存拷贝到非托管内存，如果需要从非托管内存拷贝到托管内存，需要对参数指定 [Out] 特性，如果是需要双向进行拷贝，需要同时指定 [In] [Out] 特性</li>
+</ol>
+<p>与类不同，结构内存是分配在线程栈上，并且默认字段排序是LayoutKind.Sequential，因此结构体不用添加任何特性，就可以封送给非托管。另外如果结构体分配在线程栈上，并且结构成员只包含blittable类型，那么在封送时是固定的，可以直接封送给非托管，而不需要进行内存副本拷贝。一旦包含了Non-Blittable类型，该优化将不起作用。</p>
+<h4 id="P-Invoke函数参数声明准则"><a href="#P-Invoke函数参数声明准则" class="headerlink" title="P/Invoke函数参数声明准则"></a>P/Invoke函数参数声明准则</h4><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>非托管的签名</th>
+<th>托管声明：非间接-struct MyType</th>
+<th>托管声明：一级间接-class MyType</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DoWork(MyType x) 要求零级间接</td>
+<td>DoWork(MyType x)</td>
+<td>不可能实现，因为clas已经包含一级间接</td>
+</tr>
+<tr>
+<td>DoWork(MyType* x) 要求一级间接</td>
+<td>DoWork(ref MyType x)</td>
+<td>DoWork(MyType x)</td>
+</tr>
+<tr>
+<td>DoWork(MyType** x) 要求二级间接</td>
+<td>不可能，因为不能出现ref ref</td>
+<td>DoWork(ref MyType x)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="类和结构体作为返回值"><a href="#类和结构体作为返回值" class="headerlink" title="类和结构体作为返回值"></a>类和结构体作为返回值</h4><p>前面说过，P/Invoke的返回值只能是Blittable类型，所以类不能作为传值返回值，如果想要类作为返回值，非托管的返回值必须是指向结构体的指针。</p>
+<p>结构体可以作为非托管的传值返回值，不能以传引用的方式返回结构体，如果需要返回结构体的引用，需要返回结构的指针（IntPtr），然后调用Marshal.PtrToStructure将IntPtr转换到结构体。</p>
+<h3 id="封送数组"><a href="#封送数组" class="headerlink" title="封送数组"></a>封送数组</h3><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> WIN32_LEAN_AND_MEAN</span></span><br><span class="line"><span class="meta">#include &lt;windows.h&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#ifdef PINVOKELIB_EXPORTS</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PINVOKELIB_API __declspec(dllexport)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PINVOKELIB_API __declspec(dllimport)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> COL_DIM = <span class="number">5</span>;</span><br><span class="line"></span><br><span class="line">typedef <span class="keyword">struct</span> _MYPOINT</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> x;</span><br><span class="line">    <span class="keyword">int</span> y;</span><br><span class="line">&#125; MYPOINT;</span><br><span class="line"></span><br><span class="line">typedef <span class="keyword">struct</span> _MYPERSON</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">char</span>* first;</span><br><span class="line">    <span class="keyword">char</span>* last;</span><br><span class="line">&#125; MYPERSON;</span><br><span class="line"></span><br><span class="line"><span class="meta">#ifdef __cplusplus</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">PINVOKELIB_API <span class="keyword">int</span> <span class="title">TestArrayOfInts</span>(<span class="params"><span class="keyword">int</span>* pArray, <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="function">PINVOKELIB_API <span class="keyword">int</span> <span class="title">TestRefArrayOfInts</span>(<span class="params"><span class="keyword">int</span>** ppArray, <span class="keyword">int</span>* pSize</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="function">PINVOKELIB_API <span class="keyword">int</span> <span class="title">TestMatrixOfInts</span>(<span class="params"><span class="keyword">int</span> pMatrix[][COL_DIM], <span class="keyword">int</span> row</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="function">PINVOKELIB_API <span class="keyword">int</span> <span class="title">TestArrayOfStrings</span>(<span class="params"><span class="keyword">char</span>* ppStrArray[], <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="function">PINVOKELIB_API <span class="keyword">int</span> <span class="title">TestArrayOfStructs</span>(<span class="params">MYPOINT* pPointArray, <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="function">PINVOKELIB_API <span class="keyword">int</span> <span class="title">TestArrayOfStructs2</span>(<span class="params">MYPERSON* pPersonArray, <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#ifdef __cplusplus</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+<p>托管导出方法：  </p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> System.Runtime.InteropServices;</span><br><span class="line"></span><br><span class="line">[<span class="meta">StructLayout(LayoutKind.Sequential)</span>]</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">struct</span> MyPoint</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> x;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> y;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyPoint</span>(<span class="params"><span class="keyword">int</span> x, <span class="keyword">int</span> y</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">this</span>.x = x;</span><br><span class="line">        <span class="keyword">this</span>.y = y;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">[<span class="meta">StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)</span>]</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">struct</span> MyPerson</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> String first;</span><br><span class="line">    <span class="keyword">public</span> String last;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyPerson</span>(<span class="params">String first, String last</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">this</span>.first = first;</span><br><span class="line">        <span class="keyword">this</span>.last = last;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">LibWrap</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 按值封送int[]，不能改变数组的大小，通过添加Out属性，非托管内存会复制到托管内存</span></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"..\\LIB\\PinvokeLib.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">TestArrayOfInts</span>(<span class="params">[In, Out] <span class="keyword">int</span>[] array, <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 按引用封送int[]，非托管端可以改变数组的大小，但是改变后的内存不能返回给托管堆</span></span><br><span class="line">    <span class="comment">// 因为拆装器不知道改变后的数组大小，托管端可以返回的size大小和数组指针，手动进行获取改变后的值</span></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"..\\LIB\\PinvokeLib.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">TestRefArrayOfInts</span>(<span class="params"><span class="keyword">ref</span> IntPtr array, <span class="keyword">ref</span> <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 按值封送二维数组</span></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"..\\LIB\\PinvokeLib.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">TestMatrixOfInts</span>(<span class="params">[In, Out] <span class="keyword">int</span>[,] pMatrix, <span class="keyword">int</span> row</span>)</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 按值封送字符串数组</span></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"..\\LIB\\PinvokeLib.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">TestArrayOfStrings</span>(<span class="params">[In, Out] String[] stringArray, <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 封送结构体数组</span></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"..\\LIB\\PinvokeLib.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">TestArrayOfStructs</span>(<span class="params">[In, Out] MyPoint[] pointArray, <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 封送包含字符串的结构体数组</span></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"..\\LIB\\PinvokeLib.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">int</span> <span class="title">TestArrayOfStructs2</span>(<span class="params">[In, Out]MyPerson[] personArray, <span class="keyword">int</span> size</span>)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> System.Linq;</span><br><span class="line"><span class="keyword">using</span> System.Runtime.InteropServices;</span><br><span class="line"><span class="keyword">using</span> System.Text;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"><span class="keyword">string</span>[] args</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="comment">// 测试按值封送int[]</span></span><br><span class="line">        <span class="keyword">int</span>[] array1 = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">10</span>];</span><br><span class="line">        Console.WriteLine(<span class="string">"Integer array passed ByVal before call:"</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; array1.Length; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            array1[i] = i;</span><br><span class="line">            Console.Write(<span class="string">" "</span> + array1[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> sum1 = LibWrap.TestArrayOfInts(array1, array1.Length);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nSum of elements:"</span> + sum1);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nInteger array passed ByVal after call:"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">foreach</span> (<span class="keyword">int</span> i <span class="keyword">in</span> array1)</span><br><span class="line">        &#123;</span><br><span class="line">            Console.Write(<span class="string">" "</span> + i);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 测试按引用封送int[]</span></span><br><span class="line">        <span class="keyword">int</span>[] array2 = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">10</span>];</span><br><span class="line">        <span class="keyword">int</span> size = array2.Length;</span><br><span class="line">        Console.WriteLine(<span class="string">"\n\nInteger array passed ByRef before call:"</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; array2.Length; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            array2[i] = i;</span><br><span class="line">            Console.Write(<span class="string">" "</span> + array2[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        IntPtr buffer = Marshal.AllocCoTaskMem(Marshal.SizeOf(size)</span><br><span class="line">           * array2.Length);</span><br><span class="line">        Marshal.Copy(array2, <span class="number">0</span>, buffer, array2.Length);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> sum2 = LibWrap.TestRefArrayOfInts(<span class="keyword">ref</span> buffer, <span class="keyword">ref</span> size);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nSum of elements:"</span> + sum2);</span><br><span class="line">        <span class="keyword">if</span> (size &gt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">int</span>[] arrayRes = <span class="keyword">new</span> <span class="keyword">int</span>[size];</span><br><span class="line">            Marshal.Copy(buffer, arrayRes, <span class="number">0</span>, size);</span><br><span class="line">            Marshal.FreeCoTaskMem(buffer);</span><br><span class="line">            Console.WriteLine(<span class="string">"\nInteger array passed ByRef after call:"</span>);</span><br><span class="line">            <span class="keyword">foreach</span> (<span class="keyword">int</span> i <span class="keyword">in</span> arrayRes)</span><br><span class="line">            &#123;</span><br><span class="line">                Console.Write(<span class="string">" "</span> + i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            Console.WriteLine(<span class="string">"\nArray after call is empty"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 多维数组封送</span></span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">int</span> DIM = <span class="number">5</span>;</span><br><span class="line">        <span class="keyword">int</span>[,] matrix = <span class="keyword">new</span> <span class="keyword">int</span>[DIM, DIM];</span><br><span class="line"></span><br><span class="line">        Console.WriteLine(<span class="string">"\n\nMatrix before call:"</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; DIM; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; DIM; j++)</span><br><span class="line">            &#123;</span><br><span class="line">                matrix[i, j] = j;</span><br><span class="line">                Console.Write(<span class="string">" "</span> + matrix[i, j]);</span><br><span class="line">            &#125;</span><br><span class="line">            Console.WriteLine(<span class="string">""</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> sum3 = LibWrap.TestMatrixOfInts(matrix, DIM);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nSum of elements:"</span> + sum3);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nMatrix after call:"</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; DIM; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; DIM; j++)</span><br><span class="line">            &#123;</span><br><span class="line">                Console.Write(<span class="string">" "</span> + matrix[i, j]);</span><br><span class="line">            &#125;</span><br><span class="line">            Console.WriteLine(<span class="string">""</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 按值封送</span></span><br><span class="line">        String[] strArray = &#123; <span class="string">"one"</span>, <span class="string">"two"</span>, <span class="string">"three"</span>, <span class="string">"four"</span>, <span class="string">"five"</span> &#125;;</span><br><span class="line">        Console.WriteLine(<span class="string">"\n\nString array before call:"</span>);</span><br><span class="line">        <span class="keyword">foreach</span> (String s <span class="keyword">in</span> strArray)</span><br><span class="line">            Console.Write(<span class="string">" "</span> + s);</span><br><span class="line">        <span class="keyword">int</span> lenSum = LibWrap.TestArrayOfStrings(strArray, strArray.Length);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nSum of string lengths:"</span> + lenSum);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nString array after call:"</span>);</span><br><span class="line">        <span class="keyword">foreach</span> (String s <span class="keyword">in</span> strArray)</span><br><span class="line">        &#123;</span><br><span class="line">            Console.Write(<span class="string">" "</span> + s);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 按值封送结构体数组</span></span><br><span class="line">        MyPoint[] points = &#123; <span class="keyword">new</span> MyPoint(<span class="number">1</span>, <span class="number">1</span>), <span class="keyword">new</span> MyPoint(<span class="number">2</span>, <span class="number">2</span>), <span class="keyword">new</span> MyPoint(<span class="number">3</span>, <span class="number">3</span>) &#125;;</span><br><span class="line">        Console.WriteLine(<span class="string">"\n\nPoints array before call:"</span>);</span><br><span class="line">        <span class="keyword">foreach</span> (MyPoint p <span class="keyword">in</span> points)</span><br><span class="line">            Console.WriteLine(<span class="string">"x = &#123;0&#125;, y = &#123;1&#125;"</span>, p.x, p.y);</span><br><span class="line">        <span class="keyword">int</span> allSum = LibWrap.TestArrayOfStructs(points, points.Length);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nSum of points:"</span> + allSum);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nPoints array after call:"</span>);</span><br><span class="line">        <span class="keyword">foreach</span> (MyPoint p <span class="keyword">in</span> points)</span><br><span class="line">            Console.WriteLine(<span class="string">"x = &#123;0&#125;, y = &#123;1&#125;"</span>, p.x, p.y);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 按值封送结构体数组</span></span><br><span class="line">        MyPerson[] persons = &#123; <span class="keyword">new</span> MyPerson( <span class="string">"Kim"</span>, <span class="string">"Akers"</span> ),</span><br><span class="line">      <span class="keyword">new</span> MyPerson( <span class="string">"Adam"</span>, <span class="string">"Barr"</span> ), <span class="keyword">new</span> MyPerson( <span class="string">"Jo"</span>, <span class="string">"Brown"</span> )&#125;;</span><br><span class="line"></span><br><span class="line">        Console.WriteLine(<span class="string">"\n\nPersons array before call:"</span>);</span><br><span class="line">        <span class="keyword">foreach</span> (MyPerson pe <span class="keyword">in</span> persons)</span><br><span class="line">            Console.WriteLine(<span class="string">"first = &#123;0&#125;, last = &#123;1&#125;"</span>, pe.first, pe.last);</span><br><span class="line">        <span class="keyword">int</span> namesSum = LibWrap.TestArrayOfStructs2(persons, persons.Length);</span><br><span class="line">        Console.WriteLine(<span class="string">"\nSum of name lengths:"</span> + namesSum);</span><br><span class="line">        Console.WriteLine(<span class="string">"\n\nPersons array after call:"</span>);</span><br><span class="line">        <span class="keyword">foreach</span> (MyPerson pe <span class="keyword">in</span> persons)</span><br><span class="line">            Console.WriteLine(<span class="string">"first = &#123;0&#125;, last = &#123;1&#125;"</span>, pe.first, pe.last);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">Integer array passed ByVal before call:</span><br><span class="line"> <span class="number">0</span> <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span> <span class="number">5</span> <span class="number">6</span> <span class="number">7</span> <span class="number">8</span> <span class="number">9</span></span><br><span class="line">Sum of elements:<span class="number">45</span></span><br><span class="line"></span><br><span class="line">Integer array passed ByVal after call:</span><br><span class="line"> <span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span> <span class="number">104</span> <span class="number">105</span> <span class="number">106</span> <span class="number">107</span> <span class="number">108</span> <span class="number">109</span>    <span class="comment">//可以看出，数组的值已经改变了，并且返回到了托管内存</span></span><br><span class="line"></span><br><span class="line">Integer array passed ByRef before call:</span><br><span class="line"> <span class="number">0</span> <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span> <span class="number">5</span> <span class="number">6</span> <span class="number">7</span> <span class="number">8</span> <span class="number">9</span></span><br><span class="line">Sum of elements:<span class="number">45</span></span><br><span class="line"></span><br><span class="line">Integer array passed ByRef after call:</span><br><span class="line"> <span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span> <span class="number">104</span>                        <span class="comment">//数组的值和大小都改变了</span></span><br><span class="line"></span><br><span class="line">Matrix before call:</span><br><span class="line"> <span class="number">0</span> <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span></span><br><span class="line"> <span class="number">0</span> <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span></span><br><span class="line"> <span class="number">0</span> <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span></span><br><span class="line"> <span class="number">0</span> <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span></span><br><span class="line"> <span class="number">0</span> <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span></span><br><span class="line"></span><br><span class="line">Sum of elements:<span class="number">50</span></span><br><span class="line"></span><br><span class="line">Matrix after call:</span><br><span class="line"> <span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span> <span class="number">104</span></span><br><span class="line"> <span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span> <span class="number">104</span></span><br><span class="line"> <span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span> <span class="number">104</span></span><br><span class="line"> <span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span> <span class="number">104</span></span><br><span class="line"> <span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span> <span class="number">104</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">String array before call:</span><br><span class="line"> one two three four five</span><br><span class="line">Sum of <span class="keyword">string</span> lengths:<span class="number">19</span></span><br><span class="line"></span><br><span class="line">String array after call:</span><br><span class="line"> <span class="number">123456789</span> <span class="number">123456789</span> <span class="number">123456789</span> <span class="number">123456789</span> <span class="number">123456789</span></span><br><span class="line"></span><br><span class="line">Points array before call:</span><br><span class="line">x = <span class="number">1</span>, y = <span class="number">1</span></span><br><span class="line">x = <span class="number">2</span>, y = <span class="number">2</span></span><br><span class="line">x = <span class="number">3</span>, y = <span class="number">3</span></span><br><span class="line"></span><br><span class="line">Sum of points:<span class="number">12</span></span><br><span class="line"></span><br><span class="line">Points array after call:</span><br><span class="line">x = <span class="number">1</span>, y = <span class="number">0</span></span><br><span class="line">x = <span class="number">2</span>, y = <span class="number">0</span></span><br><span class="line">x = <span class="number">3</span>, y = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Persons array before call:</span><br><span class="line">first = Kim, last = Akers</span><br><span class="line">first = Adam, last = Barr</span><br><span class="line">first = Jo, last = Brown</span><br><span class="line"></span><br><span class="line">Sum of name lengths:<span class="number">35</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Persons array after call:</span><br><span class="line">first = Kim, last = McAkers</span><br><span class="line">first = Adam, last = McBarr</span><br><span class="line">first = Jo, last = McBrown</span><br></pre></td></tr></table></figure>
+<h3 id="封送委托"><a href="#封送委托" class="headerlink" title="封送委托"></a>封送委托</h3><p>当非托管参数时函数指针或者回调指针时，托管端需要向非托管封送委托数据。如果传递过去的回调函数，是在非托管调用内完成调用，CLR会避免对委托进行回收。<br>但是如果非托管函数将委托保存起来，等调用结束之后才调用，那么就需要手动防止对委托的垃圾回收，直到调用结束之后才能够回收。</p>
+<hr>
+<p>非托管定义：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">typedef <span class="title">bool</span> (<span class="params">CALLBACK *FPTR</span>)(<span class="params"><span class="keyword">int</span> i</span>)</span>;</span><br><span class="line"><span class="function">typedef <span class="title">bool</span> (<span class="params">CALLBACK *FPTR2</span>)(<span class="params"><span class="keyword">char</span>* str</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">TestCallBack</span>(<span class="params">FPTR pf, <span class="keyword">int</span> <span class="keyword">value</span></span>)；</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">TestCallBack2</span>(<span class="params">FPTR2 pf2, <span class="keyword">char</span>* <span class="keyword">value</span></span>)</span>;</span><br></pre></td></tr></table></figure>
+<hr>
+<p>托管声名：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">delegate</span> <span class="keyword">bool</span> <span class="title">FPtr</span>(<span class="params"><span class="keyword">int</span> <span class="keyword">value</span></span>)</span>;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">delegate</span> <span class="keyword">bool</span> <span class="title">FPtr2</span>(<span class="params"><span class="keyword">string</span> <span class="keyword">value</span></span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">LibWrap</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Declares managed prototypes for unmanaged functions.</span></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"..\\LIB\\PinvokeLib.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">TestCallBack</span>(<span class="params">FPtr cb, <span class="keyword">int</span> <span class="keyword">value</span></span>)</span>;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"..\\LIB\\PinvokeLib.dll"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">TestCallBack2</span>(<span class="params">FPtr2 cb2, String <span class="keyword">value</span></span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p>输出结果：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Received <span class="keyword">value</span>: <span class="number">99</span></span><br><span class="line">Passing to callback...</span><br><span class="line">Callback called with param: <span class="number">99</span></span><br><span class="line">Callback returned <span class="literal">true</span>.</span><br><span class="line"></span><br><span class="line">Received <span class="keyword">value</span>: abc</span><br><span class="line">Passing to callback...</span><br><span class="line">Callback called with param: abc</span><br><span class="line">Callback2 returned <span class="literal">true</span>.</span><br></pre></td></tr></table></figure>
+<h2 id="非托管与GC"><a href="#非托管与GC" class="headerlink" title="非托管与GC"></a>非托管与GC</h2><p>CLR的垃圾回收器只是负责托管堆上的垃圾回收，对于非托管内存垃圾回收并不能进行正确回收，这就可能引起意想不到的问题，考虑下面的代码：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title">C</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="comment">// 指向非托管物体的句柄</span></span><br><span class="line">   IntPtr _handle;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 对h执行一些操作</span></span><br><span class="line">   [<span class="meta">DllImport (<span class="meta-string">"..."</span>)</span>]</span><br><span class="line">   <span class="function"><span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">OperateOnHandle</span> (<span class="params">IntPtr h</span>)</span>;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 释放h资源</span></span><br><span class="line">   [<span class="meta">DllImport (<span class="meta-string">"..."</span>)</span>]</span><br><span class="line">   <span class="function"><span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">DeleteHandle</span> (<span class="params">IntPtr h</span>)</span>;</span><br><span class="line"></span><br><span class="line">   ~C()</span><br><span class="line">   &#123;</span><br><span class="line">      DeleteHandle(_handle);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">m</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>   &#123;</span><br><span class="line">      OperateOnHandle(_handle);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title">Program</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="function"><span class="keyword">void</span> <span class="title">Main</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>   &#123;</span><br><span class="line">      C c = <span class="keyword">new</span> C();</span><br><span class="line">      c.m();</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当在Main中调用c.m()方法，方法调用完成之后，c不再存在引用，此时垃圾回收器可以对其进行回收，但是m（）中执行了非托管方法，非托管仍然引用着c的成员对象，这是GC不可能知道的。如果正在执行OperateOnHandle非托管函数的时候，c对象被垃圾回收器回收（虽然不太可能），同时DeleteHandle被垃圾回收线程调用，这样就会引发进程错误，可能导致程序崩溃。<br>如何解决这个问题，可以采用<a href="https://msdn.microsoft.com/zh-cn/library/system.runtime.interopservices.handleref(v=vs.100" target="_blank" rel="noopener">HandleRef</a>.aspx)类来替换IntPtr，来避免非托管函数完成前对托管对象进行垃圾回收。修改后的代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title">C</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="comment">// 指向非托管物体的句柄</span></span><br><span class="line">   HandleRef _handle;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 对h执行一些操作</span></span><br><span class="line">   [<span class="meta">DllImport (<span class="meta-string">"..."</span>)</span>]</span><br><span class="line">   <span class="function"><span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">OperateOnHandle</span> (<span class="params">HandleRef h</span>)</span>;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 释放h资源</span></span><br><span class="line">   [<span class="meta">DllImport (<span class="meta-string">"..."</span>)</span>]</span><br><span class="line">   <span class="function"><span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">void</span> <span class="title">DeleteHandle</span> (<span class="params">HandleRef h</span>)</span>;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport (<span class="meta-string">"..."</span>)</span>]</span><br><span class="line">   <span class="function"><span class="keyword">static</span> <span class="keyword">extern</span> IntPtr <span class="title">CreateHandle</span> (<span class="params"></span>)</span>;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">C</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>   &#123;</span><br><span class="line">       IntPtr h = CreateHandle();</span><br><span class="line"></span><br><span class="line">       <span class="comment">//可以看到，HandleRef同时引用实例对象和一个指针对象</span></span><br><span class="line">       _handle = <span class="keyword">new</span> HandleRef(<span class="keyword">this</span>,h);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   ~C()</span><br><span class="line">   &#123;</span><br><span class="line">      DeleteHandle(_handle);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">m</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>   &#123;</span><br><span class="line">      OperateOnHandle(_handle);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="释放非托管资源"><a href="#释放非托管资源" class="headerlink" title="释放非托管资源"></a>释放非托管资源</h2><p>GC只能回收托管堆的资源，不能对非托管资源进行回收，因此对于非托管资源，需要进行手动回收，我们可以通过释放模式（即IDisposable接口）进行非托管内存的回收，下面是一种利用<a href="https://docs.microsoft.com/zh-cn/dotnet/api/system.runtime.interopservices.safehandle?view=netframework-4.7.1" target="_blank" rel="noopener">SafeHandle</a>实现的释放模式，也是比较推荐的一种模式。  </p>
+<p>CLR对SafeHandle做了一些特殊的处理，在进行封送的时候会自动处理SafeHandle，处理方式跟它出现的位置有关系：  </p>
+<ul>
+<li>作为传出参数时，SafeHandle.handle会被封送。</li>
+<li>作为返回值时，会自动生成SafeHandle实例，并将返回的IntPtr赋值给SafeHandle.handle。</li>
+<li>使用ref SafeHandle时，传出的值会被忽略（必须设置为IntPtr.Zero），返回值会被赋值过来。</li>
+<li>作为结构体的成员函数，SafeHandle.handle会被封送。</li>
+</ul>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System;</span><br><span class="line"><span class="keyword">using</span> System.Runtime.InteropServices;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title">WinAPI</span></span><br><span class="line">&#123;</span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"kernel32.dll"</span>, CharSet = CharSet.Unicode, EntryPoint = <span class="meta-string">"CreateEvent"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> IntPtr <span class="title">CreateEvent</span>(<span class="params">IntPtr p, <span class="keyword">bool</span> mreset, <span class="keyword">bool</span> initstate, <span class="keyword">string</span> name</span>)</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"kernel32.dll"</span>, CharSet = CharSet.Unicode, EntryPoint = <span class="meta-string">"CreateEvent"</span>)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">extern</span> SafeHandle <span class="title">CreateEventSafe</span>(<span class="params">IntPtr p, <span class="keyword">bool</span> mreset, <span class="keyword">bool</span> initstate, <span class="keyword">string</span> name</span>)</span>;</span><br><span class="line"></span><br><span class="line">    [<span class="meta">DllImport(<span class="meta-string">"kernel32.dll"</span>, SetLastError = true)</span>]</span><br><span class="line">    [<span class="meta">return: MarshalAs(UnmanagedType.Bool)</span>]</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">extern</span> <span class="keyword">bool</span> <span class="title">CloseHandle</span>(<span class="params">IntPtr hObject</span>)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">DisposeBase</span> : <span class="title">IDisposable</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//使用SafeHandle句柄控制非托管资源</span></span><br><span class="line">    <span class="keyword">private</span> SafeHandle nativeRes;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DisposeBase</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="comment">//示例：创建非托管资源</span></span><br><span class="line">        nativeRes = WinAPI.CreateEventSafe(IntPtr.Zero, <span class="literal">false</span>, <span class="literal">false</span>, <span class="literal">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> 释放方法，需要使用者手动调用</span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="comment">//释放资源</span></span><br><span class="line">        Dispose(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//阻止GC调用终结器</span></span><br><span class="line">        GC.SuppressFinalize(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//如果使用IntPtr句柄引用非托管资源，则必须要实现终结期，避免用户没有显式调用Dispose方法，造成内存泄漏</span></span><br><span class="line">    <span class="comment">//由于本实例采用SafeHandle，SafeHandle内部实现了终结器，它会帮我们进行资源释放，所以这里就不需要终结器</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    ~DisposeBase()</span></span><br><span class="line"><span class="comment">    &#123;</span></span><br><span class="line"><span class="comment">        Dispose(true);</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> 资源释放逻辑</span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;param name="disposing"&gt;</span>true表示用户手动调用，false表示由GC调用<span class="doctag">&lt;/param&gt;</span></span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"><span class="keyword">bool</span> disposing</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">if</span> (disposing)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//清理托管资源，或者其他实现了Dispose模式的非托管资源</span></span><br><span class="line">            nativeRes.Dispose();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//释放非托管资源</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="非托管数据类型与托管类型对应表"><a href="#非托管数据类型与托管类型对应表" class="headerlink" title="非托管数据类型与托管类型对应表"></a>非托管数据类型与托管类型对应表</h2><p>非托管类型与托管类型对应关系：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Wtypes.h 中的非托管类型</th>
+<th>非托管 C 语言类型</th>
+<th>托管类名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HANDLE</td>
+<td>*void</td>
+<td>System.IntPtr    在 32 位 Windows 操作系统上为 32 位、在 64 位 Windows 操作系统上为 64 位。</td>
+</tr>
+<tr>
+<td>BYTE</td>
+<td>unsigned char</td>
+<td>System.Byte</td>
+<td>8 位</td>
+</tr>
+<tr>
+<td>short</td>
+<td>short</td>
+<td>System.Int16</td>
+<td>16 位</td>
+</tr>
+<tr>
+<td>WORD</td>
+<td>unsigned short</td>
+<td>System.UInt16</td>
+<td>16 位</td>
+</tr>
+<tr>
+<td>INT</td>
+<td>int</td>
+<td>System.Int32</td>
+<td>32 位</td>
+</tr>
+<tr>
+<td>UINT</td>
+<td>unsigned int</td>
+<td>System.UInt32</td>
+<td>32 位</td>
+</tr>
+<tr>
+<td>LONG</td>
+<td>long</td>
+<td>System.Int32</td>
+<td>32 位</td>
+</tr>
+<tr>
+<td>BOOL</td>
+<td>long</td>
+<td>Byte</td>
+<td>32 位</td>
+</tr>
+<tr>
+<td>DWORD</td>
+<td>unsigned long</td>
+<td>System.UInt32</td>
+<td>32 位</td>
+</tr>
+<tr>
+<td>ULONG</td>
+<td>unsigned long</td>
+<td>System.UInt32</td>
+<td>32 位</td>
+</tr>
+<tr>
+<td>CHAR</td>
+<td>char</td>
+<td>System.Char</td>
+<td>使用 ANSI 修饰。</td>
+</tr>
+<tr>
+<td>WCHAR</td>
+<td>wchar_t</td>
+<td>System.Char</td>
+<td>使用 Unicode 修饰。</td>
+</tr>
+<tr>
+<td>LPSTR</td>
+<td>char\</td>
+<td>System.String 或 System.Text.StringBuilder</td>
+<td>使用 ANSI 修饰。</td>
+</tr>
+<tr>
+<td>LPCSTR</td>
+<td>Const char\</td>
+<td>System.String 或 System.Text.StringBuilder</td>
+<td>使用 ANSI 修饰。</td>
+</tr>
+<tr>
+<td>LPWSTR</td>
+<td>wchar_t*</td>
+<td>System.String 或 System.Text.StringBuilder</td>
+<td>使用 Unicode 修饰。</td>
+</tr>
+<tr>
+<td>LPCWSTR</td>
+<td>Const wchar_t*</td>
+<td>System.String 或 System.Text.StringBuilder</td>
+<td>使用 Unicode 修饰。</td>
+</tr>
+<tr>
+<td>FLOAT</td>
+<td>Float</td>
+<td>System.Single</td>
+<td>32 位</td>
+</tr>
+<tr>
+<td>DOUBLE</td>
+<td>双精度</td>
+<td>System.Double</td>
+<td>64 位</td>
+</tr>
+</tbody>
+</table>
+</div>
+<font color="red" size="4">Tips: Win32Api的导入，可以在[pinvoke.net](https://www.pinvoke.net) 找到相应的实现，以及相应的使用示例。</font>
+
+<blockquote>
+<p>参考文章：<br><a href="http://www.mono-project.com/docs/advanced/pinvoke/" target="_blank" rel="noopener">Mono Doc</a><br><a href="https://msdn.microsoft.com/zh-cn/library/sd10k43k(v=vs.100" target="_blank" rel="noopener">MSDN</a>.aspx)</p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/14/TcpSynFin/" rel="next" title="TCP 的三次握手和四次挥手">
+                <i class="fa fa-chevron-left"></i> TCP 的三次握手和四次挥手
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/20/UnityObjectDestrayInDetail/" rel="prev" title="关于Object.Destry和空检查">
+                关于Object.Destry和空检查 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#PInvoke介绍"><span class="nav-number">1.</span> <span class="nav-text">PInvoke介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定位DLL存放地址"><span class="nav-number">2.</span> <span class="nav-text">定位DLL存放地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定位非托管函数地址"><span class="nav-number">3.</span> <span class="nav-text">定位非托管函数地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DllImportAttribute其他参数介绍"><span class="nav-number">4.</span> <span class="nav-text">DllImportAttribute其他参数介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据封送"><span class="nav-number">5.</span> <span class="nav-text">数据封送</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Blittable类型"><span class="nav-number">5.1.</span> <span class="nav-text">Blittable类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存复制与内存固定"><span class="nav-number">5.2.</span> <span class="nav-text">内存复制与内存固定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#封送字符串"><span class="nav-number">5.3.</span> <span class="nav-text">封送字符串</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#封送System-Boolean"><span class="nav-number">5.4.</span> <span class="nav-text">封送System.Boolean</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#封送类和结构体"><span class="nav-number">5.5.</span> <span class="nav-text">封送类和结构体</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#P-Invoke函数参数声明准则"><span class="nav-number">5.5.1.</span> <span class="nav-text">P/Invoke函数参数声明准则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#类和结构体作为返回值"><span class="nav-number">5.5.2.</span> <span class="nav-text">类和结构体作为返回值</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#封送数组"><span class="nav-number">5.6.</span> <span class="nav-text">封送数组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#封送委托"><span class="nav-number">5.7.</span> <span class="nav-text">封送委托</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#非托管与GC"><span class="nav-number">6.</span> <span class="nav-text">非托管与GC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#释放非托管资源"><span class="nav-number">7.</span> <span class="nav-text">释放非托管资源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#非托管数据类型与托管类型对应表"><span class="nav-number">8.</span> <span class="nav-text">非托管数据类型与托管类型对应表</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

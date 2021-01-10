@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="本章主要讨论特定类型UI控件的优化，虽然大多数UI控件在性能方面变化不大，但是有两个控件在项目后期经常会出现性能问题，这两个控件分别是 Text 和 ScrollRect。">
+<meta name="keywords" content="ugui,unity最佳实践">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UGUI最佳实践(4)-UI 控件优化">
+<meta property="og:url" content="https://huosk.github.io/2018/12/14/UguiOptimiseControl/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="本章主要讨论特定类型UI控件的优化，虽然大多数UI控件在性能方面变化不大，但是有两个控件在项目后期经常会出现性能问题，这两个控件分别是 Text 和 ScrollRect。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.721Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="UGUI最佳实践(4)-UI 控件优化">
+<meta name="twitter:description" content="本章主要讨论特定类型UI控件的优化，虽然大多数UI控件在性能方面变化不大，但是有两个控件在项目后期经常会出现性能问题，这两个控件分别是 Text 和 ScrollRect。">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2018/12/14/UguiOptimiseControl/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>UGUI最佳实践(4)-UI 控件优化 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2018/12/14/UguiOptimiseControl/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">UGUI最佳实践(4)-UI 控件优化
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-12-14 23:14:02" itemprop="dateCreated datePublished" datetime="2018-12-14T23:14:02+08:00">2018-12-14</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/unity3d/" itemprop="url" rel="index"><span itemprop="name">unity3d</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本章主要讨论特定类型UI控件的优化，虽然大多数UI控件在性能方面变化不大，但是有两个控件在项目后期经常会出现性能问题，这两个控件分别是 Text 和 ScrollRect。<br><a id="more"></a></p>
+<h2 id="UI-Text"><a href="#UI-Text" class="headerlink" title="UI Text"></a>UI Text</h2><p>UGUI内置的 Text 组件可以方便的显示文字，然而，我并不知道它底层的很多行为，这些往往会成为性能的热点，必须记住的一点是，当我们向 UI 添加一个 Text 组件的时候，它会为每个字符创建一个四边形，这些四边形周围存在很多的空白空间，这取决于他的形状大小，这种方式很容易在放置文本的时候中断其他 UI 元素的批处理。</p>
+<h3 id="文本网格重构"><a href="#文本网格重构" class="headerlink" title="文本网格重构"></a>文本网格重构</h3><p>文本网格重构是一个非常重要的问题，当 Text 组件发生变化时，就需要重新计算各个字符的四边形网格来显示实际的字符串，当Text组件或者父物体从 disable 转换到 enable状态时，即使字符串内容没有发生变化，也会重新进行计算。</p>
+<p>这对于那些包含大量 Text 组件的 UI 是有性能问题的，最常见的情况就是排行榜和统计信息面板。显示/隐藏 UI 最常用的方法就是 Enable/Disbale 包含该 UI 的游戏对象，包含大量 Text 组件的 UI 经常会引起帧率的波动。</p>
+<p>一个变通的解决方式，可以参考<a href>禁用 Canvas</a>。</p>
+<h3 id="动态字体和字体图集"><a href="#动态字体和字体图集" class="headerlink" title="动态字体和字体图集"></a>动态字体和字体图集</h3><p>当整个项目需要显示的字符集非常大，或者在运行之前是未知的，那么动态字体是一种很方便的选择。在运行时，Unity 会将 Text 组件中使用的字符打包到一个字符图集中。每一个加载的字体都会生成自己的字符图集，即使它与另一种字体类型相同，比如，使用 Arial 字体创建一个 blod 类型的 Text，和使用 Arial Bold 字体创建一个 normal 类型的字体，虽然他们最终的效果一样，但是使用的却是不同的字符图集，一个是 Arial、一个是 Arial Bold。</p>
+<p>从性能方面考虑，最重要的是要了解，UGUI 为每种字体大小、字体样式、字符维护一个字形，比如：现在有两个 Text 组件，显示内容都是 ‘A’，那么：</p>
+<ol>
+<li>如果两个Text 的字体大小（fontSize）相同，字符图集中只有一个‘A’字形。</li>
+<li>如果两个 Text 的字体大小不一样（一个16，一个24），字符图集将会包含两份‘A’字形的拷贝（一个对应16号字体，一个对应24号字体）。</li>
+<li>如果一个Text 的字体样式是 blod，而另一个是 normal，字符图集将会包含两份‘A’字形的拷贝（一个对应 bold 样式，一个对应 normal 样式）。</li>
+</ol>
+<p>每当 Text 遇到字符图集中没有的字符时，都会对字符图集进行重新构建。如果字符图集能够容纳新的字形，就会将它添加到图集中，并将图集重新上传到图形设备，如果字符图集太小不能容纳新字形，系统将会尝试重新构建字符图集，这个过程主要分两个阶段：<br>第一步，使用相同尺寸重新构建图集，但是只将当前活动的 Text 组件的字形添加到图集中，如果这些字形能够成功添加到图集中，那么第二步就不需要执行了。<br>第二部，如果第一步执行失败了，说明相同尺寸的图集已经容纳不下需要显示的字符，只能采用更大尺寸的图集，新尺寸 = 当前尺寸 x 2；例如 512 x 512 增大后会变成 512 x 1024 大小。<br>由于上面的算法，图集尺寸只有在创建的时候才会增大，考虑到图集重构的资源消耗，需要将该过程的消耗降到最低，有两个可用的方法：</p>
+<ol>
+<li>尽可能采用非动态字体以及采用预先配置好的字符集，对于字符范围约束比较好的情况，这通常能够很好工作，例如将可用的字符集限定为拉丁/ASCii。</li>
+<li>如果需要极大量的字符集，比如整个 Unicode 字符集，此时必须使用动态字体，为了避免可预见的性能问题，在启动时使用一组合适的字符来填充字符图集，利用<a href="http://docs.unity3d.com/ScriptReference/Font.RequestCharactersInTexture.html?_ga=2.151954553.1506199275.1535946242-1633858718.1535607747" target="_blank" rel="noopener">Font.RequestCharactersInTexture</a>方法实现该功能。</li>
+</ol>
+<p>需要注意的是，每个变化的 Text 组件都会触发字符图集的重构，所以当布局一个具有大量 Text 组件的 UI 的时候，最好是提前将所用到的字符收集起来，然后通过调用<a href="http://docs.unity3d.com/ScriptReference/Font.RequestCharactersInTexture.html?_ga=2.151954553.1506199275.1535946242-1633858718.1535607747" target="_blank" rel="noopener">Font.RequestCharactersInTexture</a>方法在开始的时候填充字符图集。这样可以保证字符图集只重构一次，而不用每次添加新字形的时候都进行重构。</p>
+<p>另外需要注意的是，当字符图集重构的时候，不包含在当前活动的 Text 组件的任何字符，不会出现在新创建的字符图集中，即使它们当初是通过<a href="http://docs.unity3d.com/ScriptReference/Font.RequestCharactersInTexture.html?_ga=2.151954553.1506199275.1535946242-1633858718.1535607747" target="_blank" rel="noopener">Font.RequestCharactersInTexture</a>方法添加到图集中的，为了解决这个限制，监听 <a href="https://docs.unity3d.com/ScriptReference/Font-textureRebuilt.html" target="_blank" rel="noopener">Font.textureRebuilt</a> 事件（该事件在字符集重构的时候调用），并且通过查询 <a href="http://docs.unity3d.com/ScriptReference/Font-characterInfo.html?_ga=2.177507557.1506199275.1535946242-1633858718.1535607747" target="_blank" rel="noopener">Font.charactorInfo</a> 来确保所有期望的字符被填充到图集中。</p>
+<p>在有些情况下字符集是确定的，并且字符的位置也相对固定，此时一个更好的办法是通过自定义组件展示 Sprite 来完成字符的显示，一个可能的例子是得分显示功能。对于得分显示，它所需要的字符集是确定的（0-9），可以将一个整数分解成单个数字，然后组合显示出来，这种方式在计算、显示、动画方面比是使用 Text 组件要更快。</p>
+<h3 id="回退字体和内存占用"><a href="#回退字体和内存占用" class="headerlink" title="回退字体和内存占用"></a>回退字体和内存占用</h3><p>首先解释一下什么是“回退字体”，当 Text 组件要显示一个字符的时候，首先从 Text 组件指定的字体中查找字符对应的字形，但是如果找不到怎么办？Unity采用了一个回退机制来解决这个问题，当我们导入字体的时候，导入设置中有一个“Font Names”属性，该属性相当于指定了一个备胎名字（回退字体的名称），如果在字体找不到相应的字符，会根据备胎名字，在项目中和用户机器上查找回退字体，最后在回退字体中查找相应字符。有两种情况会触发回调机制：</p>
+<ol>
+<li>Text 组件找不到指定的字体。这种情况是在导入设置时没有勾选 Incl. Font Data 选项（如果勾选该选项，在发布项目的时候，字体会自动的打包进项目中），而且用户机器上也没有安装该字体。</li>
+<li>Text 组件指定的字体不包含所请求的字形。比如在 Arial 字体中只包含了 Ascii 字符集，而不包括 Unicode 字符。</li>
+</ol>
+<p>一个回退字体例子，首先导入两种字体,Arial和方正舒体，在导入设置中，将Arial字体的“Font Names”设置为“FZShuTi”,然后创建一个 Text 组件，在 Text 组件中输入一些汉字，此时字体采用系统默认的 Arial，汉字显示也是采用其默认的回退字体；现在将 Text 字体设置为导入的 Arial，此时的汉字显示采用回退字体。</p>
+<p>为了支持这种回退行为，Unity 必须将 “Font Names”中列出的字体加载到内存中，如果回调字体的字符集非常大，那么回调字体的内存占用将会非常大，这在使用中文字符时非常常见。</p>
+<h3 id="Best-Fit与性能"><a href="#Best-Fit与性能" class="headerlink" title="Best Fit与性能"></a>Best Fit与性能</h3><p>通常来说，永远不应该使用 Text 组件的 Best Fit 选项。<br>Best Fit 选项会自动的调节字体大小到 Text 组件边框能够容纳的最大尺寸，改尺寸受指定的最大/最小约束。上面提过，对于不同字体大小的字符，Unity都会向字符图集添加新的字形，所以启用 Best Fit 时，不同尺寸的字形将会非常快的把字符图集填满。</p>
+<p>在Unity2017.3中，Best Fit 的字体大小检测并不是最优的，它会为尺寸测试过程中的每种尺寸都生成字形并添加到字符图集中，这增加了后期生成图集所需的时间。同样会造成字符图集的迅速填满，这会引起字符集重构，造成旧字形（当前没有Text 组件在显示的字符）被剔除出字符集。即使后续修复了这个问题，启用 Best Fit 仍然比较慢。</p>
+<h2 id="TextMeshPro-Text组件"><a href="#TextMeshPro-Text组件" class="headerlink" title="TextMeshPro Text组件"></a>TextMeshPro Text组件</h2><p>TextMeshPro（TMP）是UGUI 内置 Text/TextMesh 组件的替代方案，TMP 采用有向距离场（SDF）作为其主要的渲染管线，使得文本在任何尺寸和分辨率下都能清楚的呈现，使用一系列自定义Shader来完成 SDF 渲染，TMP能够通过改变材质的属性来动态的改变文本的展示效果，包括 Outline、Shadow。</p>
+<p>在Unity2018.1之后，TMP作为一个资源包包含在项目当中。可以通过 Package Manager进行管理。</p>
+<h3 id="TMP的文本网格重构"><a href="#TMP的文本网格重构" class="headerlink" title="TMP的文本网格重构"></a>TMP的文本网格重构</h3><p>与内置的 Text 组件相似，改变文本的展示效果将会触发Canvas.BuildBatch、Canvas.SendWillRendererCanvas函数被调用，尽可能少的修改 TextMeshProUGUI.text 属性，如果需要频繁的修改 TextMeshProUGUI.text 属性，那么应该为 TextMeshProUGUI 创建单独Canvas 组件，来提高 Canvas重构效率。 </p>
+<p>当需要在三维场景显示文本的时候，建议使用 TextMeshPro 来替代 TextMeshProUGUI,因为Canvas 的worldSpace 渲染效率比较低，直接使用 TextMeshPro 效率更高，并且不会引起 Canvas 的重构。</p>
+<h3 id="字体和内存占用"><a href="#字体和内存占用" class="headerlink" title="字体和内存占用"></a>字体和内存占用</h3><p>TMP没有提供动态字体功能，因此只能依赖于回退字体，理解回退字体如何加载和使用对于内存优化至关重要。<br>TMP采用递归的方式来查找字符，查找策略如下：</p>
+<ol>
+<li>如果在TMP 的 Font Asset 中没有找到字符，TMP将会遍历Font Asset 的 Fallback Font Assets列表，从列表中第一个 Font Asset 开始查找，如果没有找到，继续递归它的 Fallback Font Assets。</li>
+<li>如果仍然没有找到字符，接着在 TMP 的 spriteAsset 进行递归查找。</li>
+<li>如果仍然没有找到字符，接着从 TMP_Settings.fallbackFontAssets 中进行递归查找。</li>
+<li>如果仍然没有找到字符，从 TMP_Settings.defaultFontAsset 进行递归查找。</li>
+<li>如果仍然没有找到字符，从 TMP_Settings.defaultSpriteAsset 进行递归查找。</li>
+<li>最终如果还是没有找到，TMP 就会采用 TMP_Settings.missingGlyphCharacter 替换字符显示。(通常是一个方框)</li>
+</ol>
+<p>当场景或者项目引用 TMP Font Assets 时，它们就会被加载，主要包括 Text 组件的引用、TMP_Setting的引用、自身回退的引用，当第一个包含TMP Text 组件的场景被加载时，TMP_Setting中引用的 FontAsset 和 SpriteAsset 将会递归的加载。</p>
+<p>此外，如果一个 TMP Text 组件引用的 FontAsset 在 TMP_Setting 加载时没有被加载，那么在该组件第一次被激活时，将会被递归加载。当项目中包含许多 FontAsset 时，必须时刻谨记这一过程，特别是可用内存比较成问题时。</p>
+<p>由于以上原因，使用 TMP 进行项目本土化是一个需要解决的问题，把所有语言的字体资源都通过 TMP_Setting 进行加载对内存压力非常大。如果必须进行本地化，建议只有在需要时才指定字体资源以及回退资源（当场景加载的时候），或者使用AssetBundle 进行模块化加载。</p>
+<p>当程序启动时，在初始化程序中验证用户的区域，然后为配置每个 Font Asset 的回退字体：</p>
+<ol>
+<li>为基础的 TMP Font Assets 创建 AssetBundle。（例如只包含拉丁字符）</li>
+<li>每种语言的 Font Assets 分别创建各自的 AssetBundle。</li>
+<li>在初始化步骤中首先加载基础的 AssetBundle。</li>
+<li>然后根据用户的区域，加载对应的 AssetBundle。</li>
+<li>设置步骤3中加载的的所有基础字体，将回退字体指定为步骤4加载的字体。</li>
+</ol>
+<p>如果不使用默认的 Sprite Asset 中的表情图片，可以将它的引用从 TMP_Setting 中移除，能够节省一点内存资源。</p>
+<h3 id="TMP-的-Best-Fit-与性能"><a href="#TMP-的-Best-Fit-与性能" class="headerlink" title="TMP 的 Best Fit 与性能"></a>TMP 的 Best Fit 与性能</h3><p>再次强调，由于TMP不支持动态字体功能，所以 UGUI 部分描述的 Best Fit 问题是不存在的，唯一需要考虑的是，当使用 Best Fit （TMP中是Auto Size）时，TMP采用二分查找来查找合适的字体大小，最好只使用 AutoSize 来查找最合适的字体大小，一旦字体大小确定下来以后，关掉AutoSize 选项，然后手动设置字体大小，这样能够提升一定的性能，并且能够避免一组 Text 的字体大小不一样。</p>
+<h2 id="Scroll-View-组件"><a href="#Scroll-View-组件" class="headerlink" title="Scroll View 组件"></a>Scroll View 组件</h2><p>在填充率问题之后，Scroll View 组件是引发性能问题的第二大根源。Scroll View 通常需要在 Content 区域内显示很多的元素，Scroll View 有两种使用方式：</p>
+<ol>
+<li>直接将所有的元素填充进来。</li>
+<li>采用对象池，通过设置元素的位置，实现元素重复利用。</li>
+</ol>
+<p>这两种方式各有优劣,首先第一种当元素数量增多的时候，会增加实例化时间以及ScrollView 重构的时间，如果元素的数量非常少，比如只有少量的 Text 组件，那么采用这种方式是比较简单方便的；第二种方式需要花大量代码去实现，后面会提供两种实现方式，对于任何复杂的滚动 UI，通常都需要采用对象池来解决性能问题。</p>
+<p>对于所有的使用方式，都可以通过向ScrollView添加 RectMask2D 组件来提升性能，该组件能够保证在 ViewPort 范围之外的元素不被添加到绘制列表中。（该列表中的元素在Canvas重构时，必须进行网格生成、排序、分析）</p>
+<h3 id="简单Scroll-View-元素对象池实现"><a href="#简单Scroll-View-元素对象池实现" class="headerlink" title="简单Scroll View 元素对象池实现"></a>简单Scroll View 元素对象池实现</h3><p>为了使 Layout 系统能正确计算 ScrollView 内容大小以及 ScollBar 能够正常工作，可以使用 LayoutElement 作为占位符，为每个要生成的元素生成一个 LayoutElement。</p>
+<p>然后创建一个对象池来管理 UI元素，当 LayoutElement 占位符进入到ScrollView 的显示区时，从对象池中获取UI元素并将它放到占位符下面。</p>
+<p>这种方式会减少批处理元素数量，因为批处理的消耗是随着 Canvas Renderer 的数量增长，而非随着 RectTransform的数量。</p>
+<h4 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h4><p>一般，当UI元素的父物体发生变化，或者兄弟顺序发生变化时，UI元素以及他的所有子物体都会被标记为 dirty，然后强制它们的Canvas 进行重构。</p>
+<p>造成这一问题的原因是Unity 没有将父物体变化回调和兄弟顺序变化回调分开处理，两者都是触发 <a href="http://docs.unity3d.com/ScriptReference/MonoBehaviour.OnTransformParentChanged.html?_ga=2.252027977.1506199275.1535946242-1633858718.1535607747" target="_blank" rel="noopener">OnTransformParentChanged</a> 回调，而在UGUI的Graphic源码中，OnTransformParentChanged 方法调用了 <a href="http://docs.unity3d.com/ScriptReference/UI.Graphic.SetAllDirty.html?_ga=2.177709285.1506199275.1535946242-1633858718.1535607747" target="_blank" rel="noopener">SetAllDirty</a> 函数，对于被标记为dirty 的Graphic，系统会在下一帧显示的时候，对它的Layout 和 顶点进行重构。</p>
+<p>一种可能的办法是通过给每个UI元素的跟物体添加一个 Canvas来限制重构范围，但是这样会增加draw call 数量，进一步说，如果每个元素都包含多个Graphic组件、Layout组件，那么重构它们的花销将会明显降低帧率，尤其是在低配置设备上。</p>
+<h3 id="基于位置的-ScrollView-对象池"><a href="#基于位置的-ScrollView-对象池" class="headerlink" title="基于位置的 ScrollView 对象池"></a>基于位置的 ScrollView 对象池</h3><p>为了避免上述的问题，可以通过移动RectTransform 的位置来实现元素的重用，这样能够减少不必要的重构，明显提升性能。<br>为了实现这种方式，最好的办法是自定义 ScrollView 的子类，或者自定义个 LayoutGroup 组件，后一种实现方式要稍微简单一点，只需要从 <a href="http://docs.unity3d.com/ScriptReference/UI.LayoutGroup.html?_ga=2.210618709.1506199275.1535946242-1633858718.1535607747" target="_blank" rel="noopener">LayoutGroup</a> 继承一个子类就可以。</p>
+<p>自定义 LayoutGroup 组件可以分析需要显示的数据，来检查有多少个必须显示的元素，然后调整 Content 的 RectTransform 组件，通过订阅 <a href="http://docs.unity3d.com/ScriptReference/UI.ScrollRect-onValueChanged.html?_ga=2.244681925.1506199275.1535946242-1633858718.1535607747" target="_blank" rel="noopener">ScrollView.onValueChange</a> 事件来调整元素的位置。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ugui/" rel="tag"># ugui</a>
+          
+            <a href="/tags/unity最佳实践/" rel="tag"># unity最佳实践</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/14/FillrateCanvasInput/" rel="next" title="UGUI最佳实践(3)-填充率、画布、输入">
+                <i class="fa fa-chevron-left"></i> UGUI最佳实践(3)-填充率、画布、输入
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/14/UguiOtherOptimiseMethod/" rel="prev" title="UGUI最佳实践(5)-其他 UI 优化技术和技巧">
+                UGUI最佳实践(5)-其他 UI 优化技术和技巧 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#UI-Text"><span class="nav-number">1.</span> <span class="nav-text">UI Text</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#文本网格重构"><span class="nav-number">1.1.</span> <span class="nav-text">文本网格重构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态字体和字体图集"><span class="nav-number">1.2.</span> <span class="nav-text">动态字体和字体图集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#回退字体和内存占用"><span class="nav-number">1.3.</span> <span class="nav-text">回退字体和内存占用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Best-Fit与性能"><span class="nav-number">1.4.</span> <span class="nav-text">Best Fit与性能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TextMeshPro-Text组件"><span class="nav-number">2.</span> <span class="nav-text">TextMeshPro Text组件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#TMP的文本网格重构"><span class="nav-number">2.1.</span> <span class="nav-text">TMP的文本网格重构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#字体和内存占用"><span class="nav-number">2.2.</span> <span class="nav-text">字体和内存占用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TMP-的-Best-Fit-与性能"><span class="nav-number">2.3.</span> <span class="nav-text">TMP 的 Best Fit 与性能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Scroll-View-组件"><span class="nav-number">3.</span> <span class="nav-text">Scroll View 组件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#简单Scroll-View-元素对象池实现"><span class="nav-number">3.1.</span> <span class="nav-text">简单Scroll View 元素对象池实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#存在的问题"><span class="nav-number">3.1.1.</span> <span class="nav-text">存在的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于位置的-ScrollView-对象池"><span class="nav-number">3.2.</span> <span class="nav-text">基于位置的 ScrollView 对象池</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

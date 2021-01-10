@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="本节介绍一种新的数据结构-图，图的应用非常广泛，例如社交网络中的好友关系、计算机网络连接关系、地图道路等等，图的种类多种多样，根据不同的业务需求，选择不同的图，这里介绍4中最重要的图模型：无向图（简单连接）、有向图（连接有方向）、加权图（连接带有权重）、加权有向图（连接既有方向又包含权重）。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法 - 图">
+<meta property="og:url" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="本节介绍一种新的数据结构-图，图的应用非常广泛，例如社交网络中的好友关系、计算机网络连接关系、地图道路等等，图的种类多种多样，根据不同的业务需求，选择不同的图，这里介绍4中最重要的图模型：无向图（简单连接）、有向图（连接有方向）、加权图（连接带有权重）、加权有向图（连接既有方向又包含权重）。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/Graph.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/Graph_Special.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/Matrix.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/EdgeArray.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/AdjList.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/BFS.gif">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/DFS.gif">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/Digraph_AdjList.png">
+<meta property="og:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/Topologic.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.787Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据结构与算法 - 图">
+<meta name="twitter:description" content="本节介绍一种新的数据结构-图，图的应用非常广泛，例如社交网络中的好友关系、计算机网络连接关系、地图道路等等，图的种类多种多样，根据不同的业务需求，选择不同的图，这里介绍4中最重要的图模型：无向图（简单连接）、有向图（连接有方向）、加权图（连接带有权重）、加权有向图（连接既有方向又包含权重）。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/03/20/Algorithm14-Graph/Graph.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/03/20/Algorithm14-Graph/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>数据结构与算法 - 图 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/03/20/Algorithm14-Graph/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据结构与算法 - 图
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-03-20 22:37:03" itemprop="dateCreated datePublished" datetime="2019-03-20T22:37:03+08:00">2019-03-20</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数据结构与算法/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本节介绍一种新的数据结构-图，图的应用非常广泛，例如社交网络中的好友关系、计算机网络连接关系、地图道路等等，图的种类多种多样，根据不同的业务需求，选择不同的图，这里介绍4中最重要的图模型：无向图（简单连接）、有向图（连接有方向）、加权图（连接带有权重）、加权有向图（连接既有方向又包含权重）。</p>
+<a id="more"></a>
+<h2 id="无向图"><a href="#无向图" class="headerlink" title="无向图"></a>无向图</h2><p>无向图的定义是这样的：</p>
+<blockquote>
+<p>图是由一组<strong>顶点</strong>和一组连接两个顶点的<strong>边</strong>组成的。</p>
+</blockquote>
+<p>一般来说，顶点叫什么我们并不关心（地图中的路口、社交网络中的人、电路中的元器件都是顶点），我们只需要有一种方法来指代这些顶点，一般用 0 到 V-1 来表示一张包含 V 个顶点的图。</p>
+<img src="/2019/03/20/Algorithm14-Graph/Graph.png">
+<p>有两种特殊的情况：</p>
+<ul>
+<li>自环：一个顶点，一条边头尾都连接到顶点；</li>
+<li>平行边：头尾是同一对顶点的两条边称为<strong>平行边</strong>。</li>
+</ul>
+<img src="/2019/03/20/Algorithm14-Graph/Graph_Special.png">
+<p>与图相关的几个术语：</p>
+<ul>
+<li>相邻顶点：如果两个顶点通过一条边相连时，那么这两个顶点是<strong>相邻的</strong>，并称这条边<strong>依附于</strong>这两个顶点；</li>
+<li>顶点的度：与顶点相连的边的数量，叫做<strong>顶点的度</strong>；</li>
+<li>路径：路径是由边顺序连接的一组顶点；</li>
+<li>连通图：图中任意两个顶点都至少有一条路径连接，这种图叫做<strong>连通图</strong>；</li>
+<li>环：至少包含一条边，并且起点和终点相同的路径。</li>
+</ul>
+<p>如果将图看做是物理存在的物体，比如绳结为顶点、绳子为边，那么拎起任意一个绳结，连通图将会是一个整体，而非连通图将会散落成好几部分。</p>
+<h3 id="表示方法"><a href="#表示方法" class="headerlink" title="表示方法"></a>表示方法</h3><p>图是用来解决实际问题，所以表示图的数据结构应该能够解决绝大部分问题，其应该具备以下两点：</p>
+<ul>
+<li>能够容纳各种规模的数据，小到几十个顶点，大到百万个顶点；</li>
+<li>操作起来效率要高。</li>
+</ul>
+<p>一般可供选择的表示方法由：邻接矩阵、边数组、邻接表数组，下面就具体看一下这三种方法各有什么优缺点。</p>
+<h4 id="邻接矩阵"><a href="#邻接矩阵" class="headerlink" title="邻接矩阵"></a>邻接矩阵</h4><p>邻接矩阵是基于二维数组的，如果图$V$中的顶点$i$、$j$有边连接，对应矩阵的第i行、j列标记为1，所以对于包含 $n$ 个顶点的图，就需要 $n x n$ 的二维数组，这就会造成极大的空间浪费，不满足上面的第一点要求；另外，邻接矩阵无法表示平行边。</p>
+<img src="/2019/03/20/Algorithm14-Graph/Matrix.png">
+<h4 id="边数组"><a href="#边数组" class="headerlink" title="边数组"></a>边数组</h4><p>这种方法是定义边结构体，其中包含所依附的顶点，将图所有的边存储到数组中，这种方式对于某些操作（比如查找顶点相连的边）效率比较低，需要遍历所有的边才能够完成，不满足上面的第二点要求。</p>
+<img src="/2019/03/20/Algorithm14-Graph/EdgeArray.png">
+<h4 id="邻接表"><a href="#邻接表" class="headerlink" title="邻接表"></a>邻接表</h4><p>邻接表是顶点索引的数组，数组元素为指向链表的指针，链表中存储着该顶点相邻的顶点索引。采用这种方式能够满足上面的两点要求，对于一个包含 V 个顶点 E 条边的图，所需的空间大小为 V + E；查找相连顶点的时间复杂度为 $O(1)$；为顶点增加新连接的时间复杂度与该顶点的度成正比；并且能够表示平衡边。</p>
+<p>如果顶点不是整数，没有办法作为索引，这种情况可以采用散列表替换数组和链表，比如 C# 中的 Dictionary、HashSet。</p>
+<img src="/2019/03/20/Algorithm14-Graph/AdjList.png">
+<h3 id="无向图基础操作"><a href="#无向图基础操作" class="headerlink" title="无向图基础操作"></a>无向图基础操作</h3><p>这里只实现图相关的基本操作，采用邻接表表示方式，包括：</p>
+<ul>
+<li>添加边；</li>
+<li>获取顶点个数；</li>
+<li>获取边数；</li>
+<li>获取相邻顶点；</li>
+<li>计算顶点的度；</li>
+<li>计算所有顶点的最大度数；</li>
+<li>计算所有顶点的平均度数。</li>
+</ul>
+<p>为了实现起来简便，这里没有实现<strong>添加顶点、删除顶点、删除边</strong>，顶点也表示为整数。</p>
+<p>直接上代码：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Graph</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 顶点个数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="keyword">int</span> VertexCount;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 边个数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> EdgeCount;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 邻接表</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;<span class="keyword">int</span>&gt;[] adj;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Graph</span>(<span class="params"><span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">this</span>.VertexCount = v;</span><br><span class="line">        <span class="keyword">this</span>.EdgeCount = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">this</span>.adj = <span class="keyword">new</span> List&lt;<span class="keyword">int</span>&gt;[v];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; v; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">this</span>.adj[i] = <span class="keyword">new</span> List&lt;<span class="keyword">int</span>&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 添加边</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">AddEdge</span>(<span class="params"><span class="keyword">int</span> v, <span class="keyword">int</span> w</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">this</span>.adj[v].Add(w);</span><br><span class="line">        <span class="keyword">this</span>.adj[w].Add(v);</span><br><span class="line">        <span class="keyword">this</span>.EdgeCount++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取顶点数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">GetVertexCount</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.VertexCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取边数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">GetEdgeCount</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.EdgeCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取顶点的所有相邻顶点</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> IList&lt;<span class="keyword">int</span>&gt; <span class="title">GetAdjs</span>(<span class="params"><span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> List&lt;<span class="keyword">int</span>&gt;(<span class="keyword">this</span>.adj[v]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取顶点的度</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">GetDegree</span>(<span class="params"><span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.adj[v].Count;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取所有顶点最大的度</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">GetMaxDegree</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">int</span> maxDegree = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="keyword">this</span>.adj.Length; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">this</span>.adj[i].Count &gt; maxDegree)</span><br><span class="line">                maxDegree = <span class="keyword">this</span>.adj[i].Count;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> maxDegree;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取所有顶点的平均度</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">GetAvgDegree</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">2.0f</span> * <span class="keyword">this</span>.EdgeCount / <span class="keyword">this</span>.VertexCount;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="搜索算法"><a href="#搜索算法" class="headerlink" title="搜索算法"></a>搜索算法</h3><p>在介绍完了图的一些基础算法之后，继续介绍图的搜索算法，图的搜索算法用途非常广泛，最典型的是寻路，将地图抽象为图结构，给定起点、终点，搜索出一条可行的路径；再比如社交网络中有个著名的<a href="https://zh.wikipedia.org/wiki/%E5%85%AD%E5%BA%A6%E5%88%86%E9%9A%94%E7%90%86%E8%AE%BA" target="_blank" rel="noopener">六度分隔理论</a>，该理论认为世界上两个互不认识的人，最多只需要6个中间人就能够联系在一起。</p>
+<p>图的搜索算法很多，比如下面要介绍的深度优先搜索、广度优先搜索，以及 A<em>、IDA</em> 等启发式算法，为了将算法和图的实现解耦，这里采用策略模式，将各个算法封装为单独的类。</p>
+<h4 id="广度优先搜索"><a href="#广度优先搜索" class="headerlink" title="广度优先搜索"></a>广度优先搜索</h4><p>广度优先搜索(Breadth-First-Search、BFS)是暴力搜索的一种，很多复杂的搜索算法都是基于广度优先搜索演变而来的，它的流程是这样的，从起始顶点开始：</p>
+<ol>
+<li>遍历顶点 $A$ 的相邻顶点$A_i \in [A_0,A_n]$；</li>
+<li>如果$A_i$已经访问过，则跳过，否则记录下在搜索路径上离 $A_i$ 最近的顶点 $A$，并标记 $A_i$ 已经访问过；</li>
+<li>当 $A$ 相邻的顶点遍历完成之后，开始遍历 $A_i \in [A_0,A_n]$ 的相邻的节点，重复 1 过程。</li>
+<li>直到图中所有的顶点遍历完成之后，搜索结束。</li>
+</ol>
+<p>广度优先搜索是一种地毯式搜索，借助下面动画理解一下搜索过程。</p>
+<img src="/2019/03/20/Algorithm14-Graph/BFS.gif">
+<p>虽然看起来流程很简单，但是实现起来还是略微有些麻烦，还是直接上代码，通过代码理解一下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">BFSSearch</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> Start;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 从起点到达该顶点的路径上的最后一个顶点</span></span><br><span class="line">  <span class="comment">// 通过递归的方式，就能找到到起点的路径</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span>[] EdgeTo;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 是否存在从起点到该顶点的路径</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">bool</span>[] Marked;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">BFSSearch</span>(<span class="params">Graph g,<span class="keyword">int</span> s</span>)</span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.Start = s;</span><br><span class="line">      <span class="keyword">this</span>.Marked = <span class="keyword">new</span> <span class="keyword">bool</span>[g.GetVertexCount()];</span><br><span class="line">      <span class="keyword">this</span>.EdgeTo = <span class="keyword">new</span> <span class="keyword">int</span>[g.GetVertexCount()];</span><br><span class="line"></span><br><span class="line">      <span class="keyword">this</span>.BFS(g, s);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">BFS</span>(<span class="params">Graph g,<span class="keyword">int</span> s</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="comment">// 保存待遍历的节点</span></span><br><span class="line">      Queue&lt;<span class="keyword">int</span>&gt; queue = <span class="keyword">new</span> Queue&lt;<span class="keyword">int</span>&gt;();</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 标记起点 - 已访问</span></span><br><span class="line">      Marked[s] = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">      queue.Enqueue(s);</span><br><span class="line">      <span class="keyword">while</span>(queue.Size &gt; <span class="number">0</span>)</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">int</span> ver = queue.Dequeue();</span><br><span class="line"></span><br><span class="line">          <span class="comment">// 获取相邻节点</span></span><br><span class="line">          IList&lt;<span class="keyword">int</span>&gt; adjs = g.GetAdjs(ver);</span><br><span class="line">          <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; adjs.Count; i++)</span><br><span class="line">          &#123;</span><br><span class="line">              <span class="comment">// 相邻节点</span></span><br><span class="line">              <span class="keyword">int</span> adjVer = adjs[i];</span><br><span class="line"></span><br><span class="line">              <span class="comment">// 如果已经访问过，则直接跳过</span></span><br><span class="line">              <span class="keyword">if</span> (Marked[adjVer]) <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">              <span class="comment">// 一路遍历到这里，说明存在到这里的路</span></span><br><span class="line">              <span class="comment">// 另一个意义就是标记该节点已经访问过，避免后续重复访问</span></span><br><span class="line">              <span class="keyword">this</span>.Marked[adjVer] = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">              <span class="comment">// 记录一下这条路上离我最近的点</span></span><br><span class="line">              <span class="keyword">this</span>.EdgeTo[adjVer] = ver;</span><br><span class="line"></span><br><span class="line">              <span class="comment">// 将相邻节点的相邻节点添加到队列</span></span><br><span class="line">              <span class="comment">// 本层级的相邻节点遍历完之后，进行下一级遍历</span></span><br><span class="line">              queue.Enqueue(adjVer);</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 是否存在从 s 到 v 的路径</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">HasPathTo</span>(<span class="params"><span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.Marked[v];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 找到从 s 到 v 的路径</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> IEnumerable&lt;<span class="keyword">int</span>&gt; <span class="title">PathTo</span>(<span class="params"><span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="comment">// 不存在路径</span></span><br><span class="line">      <span class="keyword">if</span> (!HasPathTo(v))</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">      System.Collections.Generic.Stack&lt;<span class="keyword">int</span>&gt; stack = <span class="keyword">new</span> System.Collections.Generic.Stack&lt;<span class="keyword">int</span>&gt;();</span><br><span class="line">      <span class="keyword">int</span> prev = v;</span><br><span class="line">      <span class="keyword">while</span>(prev != <span class="keyword">this</span>.Start)</span><br><span class="line">      &#123;</span><br><span class="line">          stack.Push(prev);</span><br><span class="line">          prev = <span class="keyword">this</span>.EdgeTo[prev];</span><br><span class="line">      &#125;</span><br><span class="line">      stack.Push(<span class="keyword">this</span>.Start);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> stack;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="深度优先搜索"><a href="#深度优先搜索" class="headerlink" title="深度优先搜索"></a>深度优先搜索</h4><p>广度优先搜索是层层递进的地毯式搜索，深度优先搜索则截然相反，它的搜索方式就好像一个人在走迷宫，沿着一条路一直走，直到无路可走，才回头选择其他的路。</p>
+<p>深度优先搜索的描述比 BFS 还要简单，只需要<strong>递归地遍历</strong>图所有顶点，在访问任一顶点时：</p>
+<ol>
+<li>如果已被标记为已搜索，则跳过，否则继续搜索；</li>
+<li>将该顶点标记为已搜索；</li>
+<li>递归的遍历该顶点的相邻顶点。</li>
+</ol>
+<p>可以通过下面动画来理解一下这一过程：</p>
+<img src="/2019/03/20/Algorithm14-Graph/DFS.gif">
+<p>实现代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">DFSSearch</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> Start;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span>[] EdgeTo;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">bool</span>[] Marked;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">DFSSearch</span>(<span class="params">Graph g, <span class="keyword">int</span> s</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">this</span>.Start = s;</span><br><span class="line">      <span class="keyword">this</span>.EdgeTo = <span class="keyword">new</span> <span class="keyword">int</span>[g.GetVertexCount()];</span><br><span class="line">      <span class="keyword">this</span>.Marked = <span class="keyword">new</span> <span class="keyword">bool</span>[g.GetVertexCount()];</span><br><span class="line">      <span class="keyword">this</span>.DFS(g, s);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">DFS</span>(<span class="params">Graph g, <span class="keyword">int</span> s</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">this</span>.Marked[s] = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">      IList&lt;<span class="keyword">int</span>&gt; adjs = g.GetAdjs(s);</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; adjs.Count; i++)</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="comment">// 已经访问过，则直接跳过</span></span><br><span class="line">          <span class="keyword">if</span> (<span class="keyword">this</span>.Marked[adjs[i]])</span><br><span class="line">              <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">this</span>.EdgeTo[adjs[i]] = s;</span><br><span class="line">          <span class="keyword">this</span>.DFS(g, adjs[i]);</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">HasPathTo</span>(<span class="params"><span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.Marked[v];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> IEnumerable&lt;<span class="keyword">int</span>&gt; <span class="title">PathTo</span>(<span class="params"><span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">if</span> (!<span class="keyword">this</span>.HasPathTo(v))</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">      System.Collections.Generic.Stack&lt;<span class="keyword">int</span>&gt; stack = <span class="keyword">new</span> System.Collections.Generic.Stack&lt;<span class="keyword">int</span>&gt;();</span><br><span class="line">      <span class="keyword">while</span> (v != <span class="keyword">this</span>.Start)</span><br><span class="line">      &#123;</span><br><span class="line">          stack.Push(v);</span><br><span class="line">          v = <span class="keyword">this</span>.EdgeTo[v];</span><br><span class="line">      &#125;</span><br><span class="line">      stack.Push(<span class="keyword">this</span>.Start);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> stack;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="有向图"><a href="#有向图" class="headerlink" title="有向图"></a>有向图</h2><p>有向图和无向图非常类似，唯一的区别在于有向图的边是有方向的，有向图的应用也非常广泛，比如表示食物链（动物之间的捕食关系基本都是单向的）、论文中的引用关系等。</p>
+<blockquote>
+<p>有向图是由一组顶点和一组有方向的边组成。</p>
+</blockquote>
+<p>有向图的表示方法和无向图相同，都是采用邻接表。</p>
+<img src="/2019/03/20/Algorithm14-Graph/Digraph_AdjList.png">
+<h3 id="有向图基础操作"><a href="#有向图基础操作" class="headerlink" title="有向图基础操作"></a>有向图基础操作</h3><p>与无向图的基本操作大致相同，不同的是添加边、删除边操作，另外有向图还会经常用到取反操作，就是将所有边的方向反向，下面直接上代码，与无向图相同的部分，这里就不列出来了。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 添加边v-&gt;w</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">AddEdge</span>(<span class="params"><span class="keyword">int</span> v, <span class="keyword">int</span> w</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">this</span>.adj[v].Add(w);</span><br><span class="line">   <span class="keyword">this</span>.EdgeCount++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取反向图</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Digraph <span class="title">Reverse</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Digraph reverse = <span class="keyword">new</span> Digraph(<span class="keyword">this</span>.VertexCount);</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="keyword">this</span>.VertexCount; i++)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; <span class="keyword">this</span>.adj[i].Count; j++)</span><br><span class="line">       &#123;</span><br><span class="line">           reverse.AddEdge(j, i);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> reverse;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="有向图搜索算法"><a href="#有向图搜索算法" class="headerlink" title="有向图搜索算法"></a>有向图搜索算法</h3><p>深度优先搜索和广度优先搜索也都适用于有向图，主要用于解决<strong>对象可达性</strong>判断，应用非常广泛，比如垃圾回收标记算法、有向图寻路等，可达性包含单点可达性、多点可达性：</p>
+<p>单点可达性：在给定的一个起点、一个目标点之间，是否存在有向的路径；<br>多点可达性：在给定多个起点、一个目标点之间，是否存在有向的路径。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">DirectedDFS</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">bool</span>[] Marked;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 单点可达性</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">DirectedDFS</span>(<span class="params">Digraph graph,<span class="keyword">int</span> s</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">this</span>.Marked = <span class="keyword">new</span> <span class="keyword">bool</span>[graph.GetVertexCount()];</span><br><span class="line">      <span class="keyword">this</span>.DFS(graph, s);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 多点可达性判断</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">DirectedDFS</span>(<span class="params">Digraph graph,IEnumerable&lt;<span class="keyword">int</span>&gt; ss</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">this</span>.Marked = <span class="keyword">new</span> <span class="keyword">bool</span>[graph.GetVertexCount()];</span><br><span class="line">      <span class="keyword">foreach</span> (<span class="keyword">var</span> item <span class="keyword">in</span> ss)</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">if</span> (!<span class="keyword">this</span>.Marked[item])</span><br><span class="line">              <span class="keyword">this</span>.DFS(graph, item);</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 深度优先搜索</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">DFS</span>(<span class="params">Digraph graph,<span class="keyword">int</span> s</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">this</span>.Marked[s] = <span class="literal">true</span>;</span><br><span class="line">      <span class="keyword">var</span> adjs = graph.GetAdjs(s);</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; adjs.Count;i++)</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">if</span> (!<span class="keyword">this</span>.Marked[adjs[i]])</span><br><span class="line">              <span class="keyword">this</span>.DFS(graph, s);</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 判断</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">IsReachable</span>(<span class="params"><span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.Marked[v];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="拓扑排序算法"><a href="#拓扑排序算法" class="headerlink" title="拓扑排序算法"></a>拓扑排序算法</h3><p>有向图的另一个重要应用是解决调度问题，比如有一系列任务需要完成，每个任务可能都有前置执行条件，如何确定任务执行顺序，这里就可以采用拓扑排序来解决。</p>
+<blockquote>
+<p>拓扑排序就是将有向图中的顶点进行排序，使得所有的边都从前面顶点指向后面的顶点。</p>
+</blockquote>
+<img src="/2019/03/20/Algorithm14-Graph/Topologic.png">
+<p>从定义结合图可以看出来，如果有向图中存在环，即图必须是有向无环图（DAG），是无法进行拓扑排序的，所以在进行拓扑排序之前，需要判断有向图中是否存在有向环。</p>
+<h4 id="有向环判断"><a href="#有向环判断" class="headerlink" title="有向环判断"></a>有向环判断</h4><p>有向环的判断需要使用深度优先搜索，过程就像一个人拿着绳子在走迷宫，走的过程中会不断放下绳子，如果遇到了死路则回退到最近的一个路口，退的过程中会将绳子收起来，然后继续选择其他路径前进，如果前进过程中发现地上有绳子，说明该迷宫中存在环，用代码实现如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">DirectedCircle</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">bool</span>[] Marked;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span>[] EdgeTo;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">bool</span>[] IsInStack;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">bool</span> HasCirCle;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> CircleVertex;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">DirectedCircle</span>(<span class="params">Digraph graph</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">this</span>.Marked = <span class="keyword">new</span> <span class="keyword">bool</span>[graph.GetVertexCount()];</span><br><span class="line">      <span class="keyword">this</span>.EdgeTo = <span class="keyword">new</span> <span class="keyword">int</span>[graph.GetVertexCount()];</span><br><span class="line">      <span class="keyword">this</span>.IsInStack = <span class="keyword">new</span> <span class="keyword">bool</span>[graph.GetVertexCount()];</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> v = <span class="number">0</span>; v &lt; graph.GetVertexCount();v++)</span><br><span class="line">          <span class="keyword">if</span>(!<span class="keyword">this</span>.Marked[v])</span><br><span class="line">              DFS(graph, v);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">DFS</span>(<span class="params">Digraph graph,<span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">this</span>.Marked[v] = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 向前走，将绳子放下</span></span><br><span class="line">      <span class="keyword">this</span>.IsInStack[v] = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">var</span> adjs = graph.GetAdjs(v);</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; adjs.Count;i++)</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="comment">// 遇到环了</span></span><br><span class="line">          <span class="keyword">if</span> (<span class="keyword">this</span>.IsInStack[adjs[i]])</span><br><span class="line">          &#123;</span><br><span class="line">              <span class="comment">// 记录下环上的一个顶点</span></span><br><span class="line">              <span class="keyword">this</span>.CircleVertex = adjs[i];</span><br><span class="line">              <span class="keyword">this</span>.HasCirCle = <span class="literal">true</span>;</span><br><span class="line">              <span class="keyword">return</span>;</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="comment">// 还未访问过</span></span><br><span class="line">          <span class="keyword">if</span>(!<span class="keyword">this</span>.Marked[adjs[i]])</span><br><span class="line">          &#123;</span><br><span class="line">              <span class="keyword">this</span>.Marked[adjs[i]] = <span class="literal">true</span>;</span><br><span class="line">              <span class="keyword">this</span>.DFS(graph, adjs[i]);</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 往回走，将绳子捡起来</span></span><br><span class="line">      <span class="keyword">this</span>.IsInStack[v] = <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">HasCircle</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>  &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.HasCirCle;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="基于-DFS-的顶点排序"><a href="#基于-DFS-的顶点排序" class="headerlink" title="基于 DFS 的顶点排序"></a>基于 DFS 的顶点排序</h4><p>因为图的顶点是无序的，所以排序的目的就是希望按照某种特定的顺序来访问图的顶点，这里常用的排序主要有三种：前序、后续、逆后续。排序实现的思想是在 DFS 过程中，将每个顶点保存到一个数据结构中，然后遍历该结构就能遍历图所有顶点，遍历的顺序取决于数据结构性质和顶点插入时机。</p>
+<ul>
+<li>前序：在递归调用之前，将顶点插入队列；</li>
+<li>后续：在递归调用之后，将顶点插入队列；</li>
+<li>逆后续：在递归调用之后，将顶点插入栈。</li>
+</ul>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">DepthFirstOrder</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">bool</span>[] Marked;</span><br><span class="line">    <span class="keyword">private</span> System.Collections.Generic.Queue&lt;<span class="keyword">int</span>&gt; PreOrder;</span><br><span class="line">    <span class="keyword">private</span> System.Collections.Generic.Queue&lt;<span class="keyword">int</span>&gt; PostOrder;</span><br><span class="line">    <span class="keyword">private</span> System.Collections.Generic.Stack&lt;<span class="keyword">int</span>&gt; ReversePostOrder;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DepthFirstOrder</span>(<span class="params">Digraph graph</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">this</span>.Marked = <span class="keyword">new</span> <span class="keyword">bool</span>[graph.GetVertexCount()];</span><br><span class="line">        <span class="keyword">this</span>.PreOrder = <span class="keyword">new</span> System.Collections.Generic.Queue&lt;<span class="keyword">int</span>&gt;();</span><br><span class="line">        <span class="keyword">this</span>.PostOrder = <span class="keyword">new</span> System.Collections.Generic.Queue&lt;<span class="keyword">int</span>&gt;();</span><br><span class="line">        <span class="keyword">this</span>.ReversePostOrder = <span class="keyword">new</span> System.Collections.Generic.Stack&lt;<span class="keyword">int</span>&gt;();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; graph.GetVertexCount(); i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (!<span class="keyword">this</span>.Marked[i])</span><br><span class="line">                <span class="keyword">this</span>.DFS(graph, i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">DFS</span>(<span class="params">Digraph graph, <span class="keyword">int</span> v</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="comment">// 前序：在递归调用之前，将顶点插入队列</span></span><br><span class="line">        PreOrder.Enqueue(v);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">this</span>.Marked[v] = <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">var</span> adjs = graph.GetAdjs(v);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; adjs.Count; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (!<span class="keyword">this</span>.Marked[adjs[i]])</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">this</span>.DFS(graph, adjs[i]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 后续：在递归调用之后，将顶点插入队列</span></span><br><span class="line">        PostOrder.Enqueue(v);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 逆后续：在递归调用之后，将顶点插入栈</span></span><br><span class="line">        ReversePostOrder.Push(v);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> IEnumerable&lt;<span class="keyword">int</span>&gt; <span class="title">Pre</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.PreOrder;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> IEnumerable&lt;<span class="keyword">int</span>&gt; <span class="title">Post</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.PostOrder;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> IEnumerable&lt;<span class="keyword">int</span>&gt; <span class="title">ReversePost</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.ReversePostOrder;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="拓扑排序"><a href="#拓扑排序" class="headerlink" title="拓扑排序"></a>拓扑排序</h4><p>DAG 的拓扑排序为所有顶点的逆后序排列，，结合上面有向环判断和顶点排序算法，能够很容易的编写拓扑排序算法：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Topological</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">private</span> IEnumerable&lt;<span class="keyword">int</span>&gt; order;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">bool</span> hasCircle;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Topological</span>(<span class="params">Digraph graph</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        DirectedCircle circle = <span class="keyword">new</span> DirectedCircle(graph);</span><br><span class="line">        <span class="keyword">this</span>.hasCircle = circle.HasCircle();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!hasCircle)</span><br><span class="line">        &#123;</span><br><span class="line">            DepthFirstOrder dfo = <span class="keyword">new</span> DepthFirstOrder(graph);</span><br><span class="line">            <span class="keyword">this</span>.order = dfo.ReversePost();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 拓扑序列</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> IEnumerable&lt;<span class="keyword">int</span>&gt; <span class="title">Order</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.order;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 是否为有向无环图</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">IsDAG</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">return</span> !hasCircle;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/11/Algorithm13-Heap/" rel="next" title="数据结构与算法 - 二叉堆">
+                <i class="fa fa-chevron-left"></i> 数据结构与算法 - 二叉堆
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/06/Algorithm15-MST/" rel="prev" title="数据结构与算法 - 最小生成树">
+                数据结构与算法 - 最小生成树 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#无向图"><span class="nav-number">1.</span> <span class="nav-text">无向图</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#表示方法"><span class="nav-number">1.1.</span> <span class="nav-text">表示方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#邻接矩阵"><span class="nav-number">1.1.1.</span> <span class="nav-text">邻接矩阵</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#边数组"><span class="nav-number">1.1.2.</span> <span class="nav-text">边数组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#邻接表"><span class="nav-number">1.1.3.</span> <span class="nav-text">邻接表</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#无向图基础操作"><span class="nav-number">1.2.</span> <span class="nav-text">无向图基础操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#搜索算法"><span class="nav-number">1.3.</span> <span class="nav-text">搜索算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#广度优先搜索"><span class="nav-number">1.3.1.</span> <span class="nav-text">广度优先搜索</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#深度优先搜索"><span class="nav-number">1.3.2.</span> <span class="nav-text">深度优先搜索</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#有向图"><span class="nav-number">2.</span> <span class="nav-text">有向图</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#有向图基础操作"><span class="nav-number">2.1.</span> <span class="nav-text">有向图基础操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#有向图搜索算法"><span class="nav-number">2.2.</span> <span class="nav-text">有向图搜索算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拓扑排序算法"><span class="nav-number">2.3.</span> <span class="nav-text">拓扑排序算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#有向环判断"><span class="nav-number">2.3.1.</span> <span class="nav-text">有向环判断</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于-DFS-的顶点排序"><span class="nav-number">2.3.2.</span> <span class="nav-text">基于 DFS 的顶点排序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#拓扑排序"><span class="nav-number">2.3.3.</span> <span class="nav-text">拓扑排序</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

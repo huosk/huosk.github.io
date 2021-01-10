@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="一步一步实现极简光线追踪关于光线追踪实现的教程网上有很多，但是绝大部分教程都非常难理解，或者涉及很多第三方库，或者对其中的一些基础知识介绍很少，本文将采用纯软件来实现光线追踪算法，针对光线追踪的全过程进行详细的介绍，为了便于理解，抛弃窗口显示功能，将最终的结果输出到图片文件中。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一步一步实现极简光线追踪">
+<meta property="og:url" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="一步一步实现极简光线追踪关于光线追踪实现的教程网上有很多，但是绝大部分教程都非常难理解，或者涉及很多第三方库，或者对其中的一些基础知识介绍很少，本文将采用纯软件来实现光线追踪算法，针对光线追踪的全过程进行详细的介绍，为了便于理解，抛弃窗口显示功能，将最终的结果输出到图片文件中。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/Sample_01.jpg">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/Sample_02.jpg">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/Raycast.png">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/ViewFrustum.png">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/NearClip.png">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/Sample_03.jpg">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/Sample_04.jpg">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/Phong.png">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/SnellLaw.png">
+<meta property="og:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/Raycast.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.804Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一步一步实现极简光线追踪">
+<meta name="twitter:description" content="一步一步实现极简光线追踪关于光线追踪实现的教程网上有很多，但是绝大部分教程都非常难理解，或者涉及很多第三方库，或者对其中的一些基础知识介绍很少，本文将采用纯软件来实现光线追踪算法，针对光线追踪的全过程进行详细的介绍，为了便于理解，抛弃窗口显示功能，将最终的结果输出到图片文件中。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/Sample_01.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>一步一步实现极简光线追踪 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/04/07/A-Tiny-RayTracer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">一步一步实现极简光线追踪
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-04-07 23:14:05" itemprop="dateCreated datePublished" datetime="2019-04-07T23:14:05+08:00">2019-04-07</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/图形渲染/" itemprop="url" rel="index"><span itemprop="name">图形渲染</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="一步一步实现极简光线追踪"><a href="#一步一步实现极简光线追踪" class="headerlink" title="一步一步实现极简光线追踪"></a>一步一步实现极简光线追踪</h1><p>关于光线追踪实现的教程网上有很多，但是绝大部分教程都非常难理解，或者涉及很多第三方库，或者对其中的一些基础知识介绍很少，本文将采用纯软件来实现光线追踪算法，针对光线追踪的全过程进行详细的介绍，为了便于理解，抛弃窗口显示功能，将最终的结果输出到图片文件中。</p>
+<a id="more"></a>
+<p>程序的实现是基于 Unity3D 的，如果需要 C/C++ 版本，可以参考<a href="https://github.com/ssloy/tinyraytracer" target="_blank" rel="noopener">原教程</a>，对于实现过程中涉及的一些几何计算，如果实在不理解或者不感兴趣，只需要清楚它的作用即可，不是说它不重要，相反，它是必不可少的，但是本文的重点是理解光线追踪算法，因此会尽可能的避免阻碍理解的内容。</p>
+<h2 id="0x01-输出图片"><a href="#0x01-输出图片" class="headerlink" title="0x01 输出图片"></a>0x01 输出图片</h2><p>第一步是实现图片的存储输出功能，在实时渲染中，会将渲染结果显示到窗口视图，那样会做很多无关的工作，这里只是将渲染结果保存到图片中，减轻我们的理解压力。</p>
+<p>在 Unity 中实现该功能非常的简单，实现代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Step01.cs" target="_blank" rel="noopener">这里</a>。</p>
+<p>输出结果如下：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/Sample_01.jpg">
+<h2 id="显示图形"><a href="#显示图形" class="headerlink" title="显示图形"></a>显示图形</h2><p>只有渐变背景有点单调，下面在背景上画一个圆球，最终的效果如下：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/Sample_02.jpg">
+<h3 id="0x02-定义球体"><a href="#0x02-定义球体" class="headerlink" title="0x02 定义球体"></a>0x02 定义球体</h3><p>首先需要定义一个球体，代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Sphere.cs" target="_blank" rel="noopener">这里</a>：</p>
+<p>关于上面射线检测证明过程，可以参考<a href="http://www.lighthouse3d.com/tutorials/maths/ray-sphere-intersection/" target="_blank" rel="noopener">这里</a>，过程比较详细。</p>
+<h3 id="0x03-定义摄像机"><a href="#0x03-定义摄像机" class="headerlink" title="0x03 定义摄像机"></a>0x03 定义摄像机</h3><p>定义好图形之后，如何将图形显示到我们的图片中呢？换句话说，如何确定图片的哪些像素显示球呢？为了实现这一功能，需要引入一个摄像机，想象在一个三维场景中，在一架摄像机前面放置这一个球，最终摄像机会记录下特定范围内的画面，如下图所示：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/Raycast.png">
+<p>我们知道摄像机有一个拍摄范围，在计算机图形学中称这个范围为视锥体，为了表示这个范围，通常采用平截四棱锥来表示，具体的样子如下：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/ViewFrustum.png">
+<p>其中，靠近摄像机的截面叫做近裁剪面、远离摄像机的截面叫做远裁剪面。为了确定输出图片中每个像素值，我们可以把图片贴到近裁剪面，然后以相机为起点（这里放到原点位置）、向每个像素发射射线，检测与球是否相交，如果相交说明就需要显示，反之则不需要。</p>
+<h4 id="计算近裁剪面"><a href="#计算近裁剪面" class="headerlink" title="计算近裁剪面"></a>计算近裁剪面</h4><p>那么下面问题是如何计算每个像素对应的三维坐标，因为要将图片贴到近裁剪面，所以首先需要计算一下近裁剪面的尺寸，这里又多了个概念叫视场角，它是指视锥体两边的夹角，根据这个角度可以计算出近裁剪面的高度，而宽度可以根据指定的宽高比$aspect$计算，如下图所示：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/NearClip.png">
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> 获取近裁剪面的尺寸</span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;param name="near"&gt;</span>近裁剪面距离摄像机的距离<span class="doctag">&lt;/param&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;param name="fov"&gt;</span>视场角<span class="doctag">&lt;/param&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;param name="aspect"&gt;</span>宽高比<span class="doctag">&lt;/param&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;returns&gt;</span><span class="doctag">&lt;/returns&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">private</span> Vector2 <span class="title">GetNearClipSize</span>(<span class="params"><span class="keyword">float</span> near, <span class="keyword">float</span> fov, <span class="keyword">float</span> aspect</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">float</span> height = Mathf.Tan(fov * <span class="number">0.5f</span>) * <span class="number">2.0f</span> * near;</span><br><span class="line">    <span class="keyword">float</span> width = height * aspect;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Vector2(width, height);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="屏幕坐标转世界坐标"><a href="#屏幕坐标转世界坐标" class="headerlink" title="屏幕坐标转世界坐标"></a>屏幕坐标转世界坐标</h4><p>有了近裁剪面的尺寸之后，下一步就是怎么把宽度为width、高度为height的图片贴到近裁剪面（映射的一个过程），代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> 根据像素的索引，计算世界坐标</span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;param name="i"&gt;</span>像素的水平索引<span class="doctag">&lt;/param&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;param name="j"&gt;</span>像素的垂直索引<span class="doctag">&lt;/param&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;returns&gt;</span><span class="doctag">&lt;/returns&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Vector3 <span class="title">ScreenToWorld</span>(<span class="params"><span class="keyword">int</span> i, <span class="keyword">int</span> j, <span class="keyword">int</span> width, <span class="keyword">int</span> height</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">float</span> ix = i + <span class="number">0.5f</span>;    <span class="comment">// 像素的水平中心</span></span><br><span class="line">    <span class="keyword">float</span> jy = j + <span class="number">0.5f</span>;    <span class="comment">// 像素的垂直中心</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">float</span> aspect = (<span class="keyword">float</span>)width / height;</span><br><span class="line">    Vector2 nearClipSize = GetNearClipSize(<span class="number">1</span>, <span class="number">60.0f</span> * Mathf.Deg2Rad, aspect);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 范围[0,nearClipSize.x]</span></span><br><span class="line">    <span class="keyword">float</span> x = ix * nearClipSize.x / width;</span><br><span class="line">    <span class="keyword">float</span> y = jy * nearClipSize.y / height;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 范围：[-nearClipSize.x / 2,nearClipSize.x / 2]</span></span><br><span class="line">    x -= nearClipSize.x * <span class="number">0.5f</span>;</span><br><span class="line">    y -= nearClipSize.y * <span class="number">0.5f</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Vector3(x, y, <span class="number">-1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完整代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Camera.cs" target="_blank" rel="noopener">这里</a>。</p>
+<h3 id="0x04-渲染图形"><a href="#0x04-渲染图形" class="headerlink" title="0x04 渲染图形"></a>0x04 渲染图形</h3><p>经过一系列计算，终于能够根据像素获取到三位坐标了，修改步骤01中的 GetPixel 函数，实现在背景色(0.2,0.7,0.8)上显示一个球，实现步骤如下：</p>
+<ol>
+<li>定义一个相机，并根据输入的像素位置，计算追踪射线；</li>
+<li>定义一个球体；</li>
+<li>进行射线检测，如果射线穿过球体，则返回球体的颜色，反之则返回背景色。</li>
+</ol>
+<p>代码<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Step04.cs" target="_blank" rel="noopener">地址</a>。</p>
+<h3 id="0x05-多添几个球"><a href="#0x05-多添几个球" class="headerlink" title="0x05 多添几个球"></a>0x05 多添几个球</h3><p>再向场景中添加几个不同颜色的球，最终的显示效果如下：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/Sample_03.jpg">
+<p>为了表示球的颜色信息，这里用材质来表示，同时定义 RenderObject 类来保存小球的使用的材质，<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Material.cs" target="_blank" rel="noopener">查看代码</a>。</p>
+<p>当场景存在多个球时，就需要所有物体进行射线检测，为了方便计算，这里定义 World 对象来存储所有的球，同时为了方便查看各种效果，在场景中增加一个棋盘格平面，<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/World.cs" target="_blank" rel="noopener">完整代码</a>。</p>
+<p>然后修改渲染部分代码：</p>
+<ol>
+<li>创建几个材质；</li>
+<li>创建 World 对象，并添加几个球体，为球体绑定材质；</li>
+<li>修改 CastRay 方法，由单个球的射线检测，改为整个场景的检测。</li>
+</ol>
+<p>完成代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Step05.cs" target="_blank" rel="noopener">这里</a>。</p>
+<h2 id="添加灯光"><a href="#添加灯光" class="headerlink" title="添加灯光"></a>添加灯光</h2><p>上面实现虽然我们绘制的是三维的球，但是结果看上去只是二维，这是因为没有光影的明暗变化，我们之所以能够看到各种颜色的物体，是因为光线照射到物体表面，经过反射后进入到人眼中，最终经过眼睛感光成像才看到物体。</p>
+<p>在这里我们不用考虑人眼是如何感光成像的，只需要关心光线是经过怎样的过程进入到眼睛的，光线照射到物体的表面之后，会分为两部分，第一部分会在物体表面发生散射，第二部分会进入到物体内部，它们都会产生不同的视觉特性。</p>
+<p>真实的光照是非常复杂的，因此在图形学中会采用经验模型来模拟光照的效果，这里采用标准光照模型来计算光照，它的基本方法是将进入人眼的光照分为四部分：</p>
+<ul>
+<li>自发光</li>
+<li>漫反射</li>
+<li>高光反射</li>
+<li>环境光</li>
+</ul>
+<h3 id="0x06-漫反射"><a href="#0x06-漫反射" class="headerlink" title="0x06 漫反射"></a>0x06 漫反射</h3><p>当光照照射向物体表面时，因为物体的表面时凹凸不平的（这里的表面指的是微表面，可以认为是分子甚至更小的），所以会随机散射到各个方向，因为方向是随机，可以认为在任何方向上都是一样的，和人眼在什么位置是无关的，但是散射的强度与光线的入射角度相关。它们之间的关系符合兰伯特定律：反射光线的强度与表面法线和光源入射方向之间的夹角的余弦值成正比，计算公式如下：</p>
+<script type="math/tex; mode=display">
+C_{diffuse} = C_{light} * m_{diffuse} * max(0,\vec{n}· \vec{l})</script><p>最终效果如下：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/Sample_04.jpg">
+<p>先定义灯光，点光源的主要参数包括位置、光照强度，代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">PointLight</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> Vector3 position;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">float</span> intensity;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">PointLight</span>(<span class="params">Vector3 pos, <span class="keyword">float</span> i</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">this</span>.position = pos;</span><br><span class="line">        <span class="keyword">this</span>.intensity = i;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改渲染部分:</p>
+<ol>
+<li>创建 PointLight 对象；</li>
+<li>修改 CastRay 方法，当射线击中对象时，添加漫反射光照。</li>
+</ol>
+<p>最终代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Step06.cs" target="_blank" rel="noopener">这里</a>。</p>
+<h3 id="0x07-高光反射"><a href="#0x07-高光反射" class="headerlink" title="0x07 高光反射"></a>0x07 高光反射</h3><p>高光反射用于描述光线照射到物体表面时，在表面完全镜面反射方向的辐射量，这里采用 Phong 模型来计算高光，涉及的参数包括光照方向、表面法线、视线方向、镜面反射方向，如下图所示：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/Phong.png">
+<p>反射方向能够根据其他参数计算获得：</p>
+<script type="math/tex; mode=display">
+\vec{r} = 2(\vec{n} · \vec{l})\vec{n} - \vec{l}</script><p>根据 Phong 模型计算高光：</p>
+<script type="math/tex; mode=display">
+C_{specular} = (C_{light} * m_{specular}) \max(0,\vec{v}· \vec{r})^{m_{gloss}}</script><p>其中 $m<em>{specular}$表示高光的颜色，$m</em>{gloss}$表示反光度，该值越大则高光的亮点越小，修改 代码如下：</p>
+<ol>
+<li>Material 内增加高光属性；</li>
+<li>修改 CastRay 函数，增加高光计算。</li>
+</ol>
+<p>具体代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Step07.cs" target="_blank" rel="noopener">这里</a>。</p>
+<h3 id="0x08-添加阴影"><a href="#0x08-添加阴影" class="headerlink" title="0x08 添加阴影"></a>0x08 添加阴影</h3><p>为了生成阴影，就需要计算每个像素是否在阴影范围之内，因此就需要检测是否被其他物体遮住光线，检测射线的起始位置从检测点向法线反向偏移，方向指向光源位置，这样的射线检测到交叉物体之后，说明该检测位置被其他物体遮挡住了，此时只需跳过光照处理，起始位置计算方式如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">orign = Vector3.Dot(ligthDir,normal) &lt; <span class="number">0</span>? point - normal*<span class="number">0.001f</span> : point + normal*<span class="number">0.001f</span>;</span><br></pre></td></tr></table></figure>
+<p>实现代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Step08.cs" target="_blank" rel="noopener">这里</a>。</p>
+<h3 id="0x09-添加反射"><a href="#0x09-添加反射" class="headerlink" title="0x09 添加反射"></a>0x09 添加反射</h3><p>前面提到，光线照射到物体表面时，会分为两部分，第一部分是进入到物体的内部，第二部分是反射到环境中，而这部分反射光照，同样会再次照射到其他物体之上，但是反射并不会无限进行下去，随着反射会不断的衰减，所以这里会设置一个深度值来表示反射的次数，反射位置的计算方式和阴影起始点计算方式相同，修改 CastRay 代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Color <span class="title">CastRay</span>(<span class="params">Vector3 origin, Vector3 dir, RenderObject[] objs, Light[] lights,<span class="keyword">int</span> depth</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Material material = <span class="literal">null</span>;</span><br><span class="line">    Vector3 normal = Vector3.zero;</span><br><span class="line">    Vector3 hitPoint = Vector3.zero;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (depth &gt; <span class="number">4</span> || !world.SceneIntersect(origin, dir, <span class="keyword">ref</span> hitPoint, <span class="keyword">ref</span> normal, <span class="keyword">ref</span> material))</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Color(<span class="number">0.2f</span>, <span class="number">0.7f</span>, <span class="number">0.8f</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        Vector3 reflDir = -Reflect(dir, normal).normalized;</span><br><span class="line">        Vector3 refl_Origin = Vector3.Dot(reflDir, normal) &lt; <span class="number">0</span> ? hitPoint - normal * <span class="number">0.001f</span> : hitPoint + normal * <span class="number">0.001f</span>;</span><br><span class="line">        Color refl_Color = CastRay(refl_Origin, reflDir, depth);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">float</span> diffuse_light_intensity = <span class="number">0.0f</span>;</span><br><span class="line">        <span class="keyword">float</span> specular_light_intensity = <span class="number">0.0f</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; lights.Length; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            Vector3 lightDir = (lights[i].position - hitPoint).normalized;</span><br><span class="line"></span><br><span class="line">            Vector3 sdRayOrigin = Vector3.Dot(normal, lightDir) &lt; <span class="number">0</span> ? hitPoint - normal * <span class="number">0.001f</span> : hitPoint + normal * <span class="number">0.001f</span>;</span><br><span class="line">            Vector3 sdHitNormal = Vector3.zero;</span><br><span class="line">            Vector3 sdHitPoint = Vector3.zero;</span><br><span class="line">            Material sdHitMaterial = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">if</span> (world.SceneIntersect(sdRayOrigin, lightDir, <span class="keyword">ref</span> sdHitPoint, <span class="keyword">ref</span> sdHitNormal, <span class="keyword">ref</span> sdHitMaterial) &amp;&amp;</span><br><span class="line">                Vector3.Distance(sdRayOrigin, sdHitPoint) &lt; Vector3.Distance(hitPoint, lights[i].position))</span><br><span class="line">            &#123;<span class="comment">// 检测在光源和物体之间，是否存在其他遮挡物</span></span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            diffuse_light_intensity += lights[i].intensity * Mathf.Max(<span class="number">0.0f</span>, Vector3.Dot(lightDir, normal));</span><br><span class="line">            specular_light_intensity += Mathf.Pow(Mathf.Max(<span class="number">0</span>, Vector3.Dot(dir, Reflect(-lightDir, normal))), material.gloss) * lights[i].intensity;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> material.diffuse * diffuse_light_intensity +</span><br><span class="line">                        material.specular * specular_light_intensity + </span><br><span class="line">                        refl_Color * material.reflectAmount;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完整代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Step09.cs" target="_blank" rel="noopener">这里</a>。</p>
+<h3 id="0x0A-添加折射"><a href="#0x0A-添加折射" class="headerlink" title="0x0A 添加折射"></a>0x0A 添加折射</h3><p>无论漫反射、高光反射、镜面反射都属于光的反射部分，而进入物体的部分光线，会产生折射效果，其入射角和折射角之间可以用<a href="https://zh.wikipedia.org/wiki/%E6%96%AF%E6%B6%85%E5%B0%94%E5%AE%9A%E5%BE%8B" target="_blank" rel="noopener">斯涅耳定律</a>来表示。</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/SnellLaw.png">
+<p>其中 $\theta<em>{1}$ 表示入射角，$\theta</em>{2}$ 表示折射角，$n_1$ 是上层介质的折射率，$n_2$ 表示下层介质的折射率，$\vec{QO}$表示入射向量，$\vec{OP}$表示折射后光线的方向，$\vec{ON}$ 表示法线向量，以上这些向量都为单位向量。</p>
+<p>求解折射向量 $\vec{OP}$ 过程如下：</p>
+<p>分解向量$\vec{OP}$：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+    \vec{OP} &= \vec{OK} + \vec{OB}      \\
+             &= \vec{OM} * \sin{\theta_2} - \vec{ON} * \cos{\theta_2} \\
+\end{aligned} \tag{1}</script><p>分解 $\vec{QO}$ 向量：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+    \vec{QO} &= \vec{OM} * \sin{\theta_1} + \vec{ON} * \cos{\theta_1} \\
+\end{aligned} \tag{2}</script><p>根据点乘 $\vec{QO}$、$\vec{ON}$:</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+    \vec{QO} \cdot \vec{ON} &= |\vec{QO}|\cdot |\vec{ON}| \cos{\theta_1}  = \cos{\theta_1}  \\
+    \sin{\theta_1} &= \sqrt{1 - {\cos^2{\theta_1}}} \\
+\end{aligned} \tag{3}</script><p>将 (3) 带入 (2) 式可得:</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\vec{OM} &= \frac{\vec{QO} - \vec{ON} * \cos{\theta_1}}{\sin{\theta_1}}   \\
+        &=  \frac{\vec{QO} - \vec{ON} * (\vec{QO} \cdot \vec{ON})}{\sin{\theta_1}}   \\
+\end{aligned}   \tag{4}</script><p>根据斯涅耳方程:</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+    n_1*\sin{\theta_1} &= n_2 * \sin{\theta_2}    \\
+    \cos{\theta_2} &= \sqrt{1 - (\frac{n_1}{n_2})^2 * ({1-{\cos^2{\theta_1}}})} \\
+                   &= \sqrt{1 - (\frac{n_1}{n_2})^2 * ({1-({\vec{QO}\cdot \vec{ON}})^2})} \\
+
+    \sin{\theta_2} &= \sqrt{1 - \cos^2{\theta_2}}   \\
+\end{aligned} \tag{5}</script><p>将 (4)、(5) 带入 (1) 式可得：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+    \vec{OP} &= \vec{OM} * \sin{\theta_2} - \vec{ON} * \cos{\theta_2} \\
+             &= (\frac{\vec{QO} - \vec{ON} * (\vec{QO} \cdot \vec{ON})}{\sin{\theta_1}} ) * \sin{\theta_2} - \vec{ON} * (\sqrt{1 - (\frac{n_1}{n_2})^2 * ({1-({\vec{QO}\cdot \vec{ON}})^2})})   \\
+             &= (\vec{QO} - \vec{ON} * (\vec{QO} \cdot \vec{ON})) * (\frac{n_1}{n_2}) - \vec{ON} * (\sqrt{1 - (\frac{n_1}{n_2})^2 * ({1-({\vec{QO}\cdot \vec{ON}})^2})})    \\
+             &= \vec{QO}*\frac{n_1}{n_2} - \vec{ON} *((\vec{QO}\cdot \vec{ON}) * \frac{n_1}{n_2} + (\sqrt{1 - (\frac{n_1}{n_2})^2 * ({1-({\vec{QO}\cdot \vec{ON}})^2})}))  \\
+\end{aligned}</script><p>上式中需要开平方根，所以需要其下的值不小于0才有解，当其下值小于0时，上式无解，即不存在折射向量。</p>
+<p>有了上面的计算结果之后，代码实现就非常简单了，具体代码如下：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Vector3 <span class="title">Refract</span>(<span class="params">Vector3 Q, Vector3 N, <span class="keyword">float</span> eta_t, <span class="keyword">float</span> eta_i = <span class="number">1.0f</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">float</span> cos_theta1 = Vector3.Dot(-Q, N);</span><br><span class="line">  <span class="keyword">if</span> (cos_theta1 &lt; <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">return</span> Refract(Q, -N, eta_i, eta_t);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">float</span> eta = eta_i / eta_t;</span><br><span class="line">  <span class="keyword">float</span> k = <span class="number">1</span> - eta * eta * (<span class="number">1</span> - cos_theta1 * cos_theta1);</span><br><span class="line">  <span class="keyword">return</span> k &lt; <span class="number">0</span> ? <span class="keyword">new</span> Vector3(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) : (Q * eta - N * (eta * cos_theta1 + Mathf.Sqrt(k)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完整代码在<a href="https://github.com/huosk/TinyRayTracer/blob/master/Assets/Scripts/Step09.cs" target="_blank" rel="noopener">这里</a>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>再次把射线追踪的示意图放出来：</p>
+<img src="/2019/04/07/A-Tiny-RayTracer/Raycast.png">
+<p>整个过程是从眼睛（Camera）开始，向三维场景中发出射线，获取碰撞点的颜色，而这个颜色可能有一下几种情况：</p>
+<ol>
+<li>没有碰到任何物体，返回背景色；</li>
+<li>碰到物体，如果存在灯光，则需要根据光照模型进行计算，结果由几部分组成：<ol>
+<li>漫反射：与光线、法线有关；</li>
+<li>高光反射：与光线、视线、法线有关；</li>
+<li>阴影：从碰撞点向光源发出射线，检测是否存在遮挡；</li>
+<li>反射：反射的哪个物体？需要计算射线的反射向量，再次进行射线检测；</li>
+<li>折射：折射的哪个物体？需要计算射线的折射向量，再次进行射线检测。</li>
+</ol>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/06/Algorithm15-MST/" rel="next" title="数据结构与算法 - 最小生成树">
+                <i class="fa fa-chevron-left"></i> 数据结构与算法 - 最小生成树
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/10/Algorithm16-StringMatch/" rel="prev" title="数据结构与算法 - 字符串匹配">
+                数据结构与算法 - 字符串匹配 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一步一步实现极简光线追踪"><span class="nav-number">1.</span> <span class="nav-text">一步一步实现极简光线追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-输出图片"><span class="nav-number">1.1.</span> <span class="nav-text">0x01 输出图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#显示图形"><span class="nav-number">1.2.</span> <span class="nav-text">显示图形</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#0x02-定义球体"><span class="nav-number">1.2.1.</span> <span class="nav-text">0x02 定义球体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x03-定义摄像机"><span class="nav-number">1.2.2.</span> <span class="nav-text">0x03 定义摄像机</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#计算近裁剪面"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">计算近裁剪面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#屏幕坐标转世界坐标"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">屏幕坐标转世界坐标</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x04-渲染图形"><span class="nav-number">1.2.3.</span> <span class="nav-text">0x04 渲染图形</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x05-多添几个球"><span class="nav-number">1.2.4.</span> <span class="nav-text">0x05 多添几个球</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加灯光"><span class="nav-number">1.3.</span> <span class="nav-text">添加灯光</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#0x06-漫反射"><span class="nav-number">1.3.1.</span> <span class="nav-text">0x06 漫反射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x07-高光反射"><span class="nav-number">1.3.2.</span> <span class="nav-text">0x07 高光反射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x08-添加阴影"><span class="nav-number">1.3.3.</span> <span class="nav-text">0x08 添加阴影</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x09-添加反射"><span class="nav-number">1.3.4.</span> <span class="nav-text">0x09 添加反射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x0A-添加折射"><span class="nav-number">1.3.5.</span> <span class="nav-text">0x0A 添加折射</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

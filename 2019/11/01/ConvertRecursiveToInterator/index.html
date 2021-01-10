@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="递归更加利于理解，因此某些情况下我们更喜欢使用递归（比如归并排序、或者树的操作），但是随着递归深度不断加深，就可能出现栈溢出，很多大神可能都已经知道如何通过堆栈和循环来避免栈溢出，但是，我觉得提供一种简单、通用的方法来替换递归，对于新手来说是非常棒的想法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何利用栈和循环替代递归">
+<meta property="og:url" content="https://huosk.github.io/2019/11/01/ConvertRecursiveToInterator/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="递归更加利于理解，因此某些情况下我们更喜欢使用递归（比如归并排序、或者树的操作），但是随着递归深度不断加深，就可能出现栈溢出，很多大神可能都已经知道如何通过堆栈和循环来避免栈溢出，但是，我觉得提供一种简单、通用的方法来替换递归，对于新手来说是非常棒的想法。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.815Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何利用栈和循环替代递归">
+<meta name="twitter:description" content="递归更加利于理解，因此某些情况下我们更喜欢使用递归（比如归并排序、或者树的操作），但是随着递归深度不断加深，就可能出现栈溢出，很多大神可能都已经知道如何通过堆栈和循环来避免栈溢出，但是，我觉得提供一种简单、通用的方法来替换递归，对于新手来说是非常棒的想法。">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/11/01/ConvertRecursiveToInterator/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>如何利用栈和循环替代递归 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/11/01/ConvertRecursiveToInterator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">如何利用栈和循环替代递归
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-01 23:46:11" itemprop="dateCreated datePublished" datetime="2019-11-01T23:46:11+08:00">2019-11-01</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>递归更加利于理解，因此某些情况下我们更喜欢使用递归（比如归并排序、或者树的操作），但是随着递归深度不断加深，就可能出现栈溢出，很多大神可能都已经知道如何通过堆栈和循环来避免栈溢出，但是，我觉得提供一种简单、通用的方法来替换递归，对于新手来说是非常棒的想法。</p>
+<a id="more"></a>
+<h2 id="递归和循环的优缺点"><a href="#递归和循环的优缺点" class="headerlink" title="递归和循环的优缺点"></a>递归和循环的优缺点</h2><p>递归：</p>
+<ul>
+<li>优点：便于阅读和理解算法；</li>
+<li>缺点：可能引起栈溢出；</li>
+</ul>
+<p>循环：</p>
+<ul>
+<li>优点：能够避免栈溢出；效率通常要比递归更好一些；</li>
+<li>缺点：不利于理解代码，不易维护；</li>
+</ul>
+<h2 id="替换递归的-10-个规则"><a href="#替换递归的-10-个规则" class="headerlink" title="替换递归的 10 个规则"></a>替换递归的 10 个规则</h2><p>下面介绍的几种规则，是针对通用的递归转换方法，而在实际的使用中，对于简单的递归来说，可能只需要其中一部分就可以解决问题，所以在阅读过程中，需要着重理解每个原则解决哪些问题。</p>
+<h3 id="规则-01"><a href="#规则-01" class="headerlink" title="规则 01"></a>规则 01</h3><p> 递归和循环根本的差异在于，递归调用借助线程调用栈，来存储参数、局部变量等信息，因此转换时需要我们完成这部分工作，通过定义一个结构体<code>SnapShot</code>，来存储递归过程中的所有数据，以及阶段信息，总结结构体包括内容如下：</p>
+<ul>
+<li>当递归调用时值发生变化的参数，引用类型参数时不需要添加到结构体中，比如下面例子中，参数 <code>n</code> 需要添加，而引用类型 <code>retVal</code> 则不需要；</li>
+<li>阶段标记（主要用来解决递归中的分支问题，后面会详细介绍）；</li>
+<li>一些局部变量（递归调用返回后需要使用的局部变量）；</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SomeFunc</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> &amp;retIdx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(n &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> test = SomeFunc(n<span class="number">-1</span>,retIdx);</span><br><span class="line">        test--;</span><br><span class="line">        <span class="keyword">return</span> test;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"some content %d"</span>,retIdx);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 规则 1</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">SnapShot</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> n;          <span class="comment">// 输入参数</span></span><br><span class="line">    <span class="keyword">int</span> test;       <span class="comment">// 局部变量，在递归调用之后需要使用</span></span><br><span class="line">    <span class="keyword">int</span> stage;      <span class="comment">// 因为递归之后还有需要执行的代码，就需要对代码不同过程进行标记</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将递归转换为循环</span></span><br><span class="line"><span class="comment">// （根据后续规则，不断进行完善）</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SomeFuncLoop</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> &amp;retIdx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="规则-02"><a href="#规则-02" class="headerlink" title="规则 02"></a>规则 02</h3><p>在循环模拟方法最开始，创建一个局部变量，该变量用于存储递归调用的返回值。</p>
+<ul>
+<li>该值等同于递归中的返回值，如果需要用到返回值，直接使用该变量替代；</li>
+<li>如果递归函数返回值是 void 类型，则不需要使用局部变量；</li>
+<li>使用递归函数默认返回值，来初始化该局部变量；</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将递归转换为循环</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SomeFuncLoop</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> &amp;retIdx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">int</span> retVal = <span class="number">0</span>;     <span class="comment">// 采用默认返回值来初始化变量</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> retVal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="规则-03"><a href="#规则-03" class="headerlink" title="规则 03"></a>规则 03</h3><p>创建一个<code>SnapShot</code>类型的堆栈，通过这个堆栈来模拟线程调用栈，继续上面的例子。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将递归转换为循环</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SomeFuncLoop</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> &amp;retIdx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">int</span> retVal = <span class="number">0</span>;     <span class="comment">// 采用默认返回值来初始化变量</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 3</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">stack</span>&lt;SnapShot&gt;  snapshotStack;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">return</span> retVal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="规则-04"><a href="#规则-04" class="headerlink" title="规则 04"></a>规则 04</h3><ol>
+<li>创建一个<code>SnapShot</code>实例对象，并且根据循环的输入参数以及状态其实值，初始化该实例；</li>
+<li>然后将该实例添加到创建的堆栈中。</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将递归转换为循环</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SomeFuncLoop</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> &amp;retIdx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">int</span> retVal = <span class="number">0</span>;     <span class="comment">// 采用默认返回值来初始化变量</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 3</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">stack</span>&lt;SnapShot&gt;  snapshotStack;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 4</span></span><br><span class="line">    SnapShot currentSnapStack;</span><br><span class="line">    currentSnapStack.n = n;</span><br><span class="line">    currentSnapStack.test = <span class="number">0</span>;</span><br><span class="line">    currentSnapStack.stage = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    snapshotStack.push(currentSnapStack);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">return</span> retVal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="规则-05"><a href="#规则-05" class="headerlink" title="规则 05"></a>规则 05</h3><ol>
+<li>创建一个 <code>while</code> 循环，循环条件为 <code>snapshotStack</code> 不为空；</li>
+<li>每次循环时，从 <code>snapshotStack</code> 取出栈顶元素。</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将递归转换为循环</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SomeFuncLoop</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> &amp;retIdx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">int</span> retVal = <span class="number">0</span>;     <span class="comment">// 采用默认返回值来初始化变量</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 3</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">stack</span>&lt;SnapShot&gt;  snapshotStack;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 4</span></span><br><span class="line">    SnapShot currentSnapStack;</span><br><span class="line">    currentSnapStack.n = n;</span><br><span class="line">    currentSnapStack.test = <span class="number">0</span>;</span><br><span class="line">    currentSnapStack.stage = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    snapshotStack.push(currentSnapStack);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 5</span></span><br><span class="line">    <span class="keyword">while</span>(!snapshotStack.empty())</span><br><span class="line">    &#123;</span><br><span class="line">        currentSnapStack = snapshotStack.top();</span><br><span class="line">        snapshotStack.pop();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">return</span> retVal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="规则-06"><a href="#规则-06" class="headerlink" title="规则 06"></a>规则 06</h3><p>前面提到过 <code>SnapShot</code> 结构中有一个 <code>stage</code> 变量，用来存储递归的各个阶段，那么如何划分阶段，每个阶段内容是什么，后续将会一一解释，下面这一规则说明了，如何对递归进行阶段划分。</p>
+<ol>
+<li>以递归调用为分界点，将整个过程分为两部分（针对只有一个递归调用的情况），第一部分为调用前，第二部分表示递归调用后的代码；</li>
+<li>如果一个函数中有两个递归调用，则必须有三个阶段：<ol>
+<li>第一阶段 -&gt; 递归调用 -&gt; (上次递归调用返回)第二阶段（第二次递归调用） -&gt; （第二次递归调用返回) -&gt; 第三阶段</li>
+</ol>
+</li>
+<li>如果一个函数中有三个递归调用，则至少有四个阶段；</li>
+<li>依次类推。</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将递归转换为循环</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SomeFuncLoop</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> &amp;retIdx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">int</span> retVal = <span class="number">0</span>;     <span class="comment">// 采用默认返回值来初始化变量</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 3</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">stack</span>&lt;SnapShot&gt;  snapshotStack;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 4</span></span><br><span class="line">    SnapShot currentSnapStack;</span><br><span class="line">    currentSnapStack.n = n;</span><br><span class="line">    currentSnapStack.test = <span class="number">0</span>;</span><br><span class="line">    currentSnapStack.stage = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    snapshotStack.push(currentSnapStack);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 5</span></span><br><span class="line">    <span class="keyword">while</span>(!snapshotStack.empty())</span><br><span class="line">    &#123;</span><br><span class="line">        currentSnapStack = snapshotStack.top();</span><br><span class="line">        snapshotStack.pop();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 规则 6</span></span><br><span class="line">        <span class="keyword">switch</span> (currentSnapStack.stage)</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">0</span>: </span><br><span class="line">            <span class="comment">// 阶段 1，SomeFunc(n-1,retIdx) 之前的内容 </span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">            <span class="comment">// 阶段 2，SomeFunc(n-1,retIdx) 之后的内容</span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">return</span> retVal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="规则-07"><a href="#规则-07" class="headerlink" title="规则 07"></a>规则 07</h3><ol>
+<li>在规则 6 中确定阶段划分之后，需要根据 <code>SnapShot.stage</code> 变量来决定进入哪个 <code>case</code>；</li>
+<li>执行相关的阶段代码；</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将递归转换为循环</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SomeFuncLoop</span><span class="params">(<span class="keyword">int</span> n,<span class="keyword">int</span> &amp;retIdx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">int</span> retVal = <span class="number">0</span>;     <span class="comment">// 采用默认返回值来初始化变量</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 3</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">stack</span>&lt;SnapShot&gt;  snapshotStack;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 4</span></span><br><span class="line">    SnapShot currentSnapStack;</span><br><span class="line">    currentSnapStack.n = n;</span><br><span class="line">    currentSnapStack.test = <span class="number">0</span>;</span><br><span class="line">    currentSnapStack.stage = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    snapshotStack.push(currentSnapStack);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 5</span></span><br><span class="line">    <span class="keyword">while</span>(!snapshotStack.empty())</span><br><span class="line">    &#123;</span><br><span class="line">        currentSnapStack = snapshotStack.top();</span><br><span class="line">        snapshotStack.pop();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 规则 6</span></span><br><span class="line">        <span class="keyword">switch</span> (currentSnapStack.stage)</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">0</span>: </span><br><span class="line">            <span class="comment">// 阶段 1，SomeFunc(n-1,retIdx) 之前的内容 </span></span><br><span class="line">            <span class="comment">// 规则 7</span></span><br><span class="line">            <span class="keyword">if</span>(currentSnapStack.n &gt; <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">            <span class="comment">// 阶段 2，SomeFunc(n-1,retIdx) 之后的内容</span></span><br><span class="line">            <span class="comment">// 规则 7</span></span><br><span class="line">            currentSnapStack.test = retVal;</span><br><span class="line">            currentSnapStack.test -- ;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 2</span></span><br><span class="line">    <span class="keyword">return</span> retVal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>阶段 2 中我们给 test 进行了赋值，规则 1 中提到，凡是在递归调用之后，需要用到的局部变量，都需要记录到 <code>SnapShot</code> 中，因此这里需要记录到相应结构。<br>规则 2 中提到，凡是用到返回值的地方，都用声明的局部变量来替代，因此将 <code>retVal</code> 赋值给 test。</p>
+</blockquote>
+<h3 id="规则-08"><a href="#规则-08" class="headerlink" title="规则 08"></a>规则 08</h3><ol>
+<li>如果递归调用存在返回值，将每次循环的结果，记录到之前声明的局部变量中，比如这里的<code>retVal</code>；</li>
+<li>当<code>while</code>循环结束时，该局部变量存储着递归函数的最终结果；</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (currentSnapStack.stage)</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">    <span class="comment">// 阶段 1，SomeFunc(n-1,retIdx) 之前的内容</span></span><br><span class="line">    <span class="comment">// 规则 7</span></span><br><span class="line">    <span class="keyword">if</span>(currentSnapStack.n &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 8</span></span><br><span class="line">    retVal = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">    <span class="comment">// 阶段 2，SomeFunc(n-1,retIdx) 之后的内容</span></span><br><span class="line">    <span class="comment">// 规则 7</span></span><br><span class="line">    currentSnapStack.test = retVal;</span><br><span class="line">    currentSnapStack.test -- ;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 8</span></span><br><span class="line">    retVal = currentSnapStack.test;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="规则-09"><a href="#规则-09" class="headerlink" title="规则 09"></a>规则 09</h3><p>如果递归函数中，包含关键字<code>return</code>，在循环中，需要将之转换为 <code>continue</code>：</p>
+<ul>
+<li>当递归中返回一个值时，首先根据规则 8,将返回值存储到临时变量（retVal)，然后调用 <code>continue</code>；</li>
+<li>大多数情况下，规则 9 是可选的，但是为了避免逻辑错误，最好加上；</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (currentSnapStack.stage)</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">case</span> <span class="number">0</span>: </span><br><span class="line">    <span class="comment">// 阶段 1，SomeFunc(n-1,retIdx) 之前的内容 </span></span><br><span class="line">    <span class="comment">// 规则 7</span></span><br><span class="line">    <span class="keyword">if</span>(currentSnapStack.n &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 8</span></span><br><span class="line">    retVal = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 规则 9</span></span><br><span class="line">    <span class="keyword">continue</span>;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">    <span class="comment">// 阶段 2，SomeFunc(n-1,retIdx) 之后的内容</span></span><br><span class="line">    <span class="comment">// 规则 7</span></span><br><span class="line">    currentSnapStack.test = retVal;</span><br><span class="line">    currentSnapStack.test -- ;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 规则 8</span></span><br><span class="line">    retVal = currentSnapStack.test;</span><br><span class="line">    <span class="comment">// 规则 9</span></span><br><span class="line">    <span class="keyword">continue</span>;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="规则-10"><a href="#规则-10" class="headerlink" title="规则 10"></a>规则 10</h3><ol>
+<li>对于递归调用，需要再循环中，创建一个新的<code>Snapshot</code> 实例对象，初始化该对象的 <code>stage</code> 变量，以及输入参数、局部变量，然后将该实例添加到堆栈中，并且调用<code>continue</code>；</li>
+<li>如果递归调用之后，还有代码需要执行，则需要将 <code>currentSnapStack.stage</code> 设置为相应阶段，并在新的<code>Snapshot</code> 实例添加到堆栈<strong>之前</strong>，添加到堆栈中；</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 阶段 1，SomeFunc(n-1,retIdx) 之前的内容 </span></span><br><span class="line"><span class="comment">// 规则 7</span></span><br><span class="line"><span class="keyword">if</span>(currentSnapStack.n &gt; <span class="number">0</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 规则 10</span></span><br><span class="line">    currentSnapStack.stage = <span class="number">1</span>;             <span class="comment">// 因为有后续代码，因此需要将 currentSnapStack </span></span><br><span class="line">                                            <span class="comment">// 设置后添加到堆栈中</span></span><br><span class="line">    snapshotStack.push(currentSnapStack);   <span class="comment">// 必须在新的 Snapshot 对象添加之前</span></span><br><span class="line"></span><br><span class="line">    SnapShot newSnapshot;</span><br><span class="line">    newSnapshot.n = currentSnapStack.n - <span class="number">1</span>; <span class="comment">// 输入参数设置，就像调用递归时一样 SomeFunc(n-1,retIdx)</span></span><br><span class="line">    newSnapshot.test = <span class="number">0</span>;                   <span class="comment">// 根据函数默认值返回值，进行初始化</span></span><br><span class="line">    newSnapshot.stage = <span class="number">0</span>;                  <span class="comment">// 递归调用需要重新开始执行函数，因此 stage 设置为 0</span></span><br><span class="line"></span><br><span class="line">    snapshotStack.push(newSnapshot);</span><br><span class="line">    <span class="keyword">continue</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="各类递归示例"><a href="#各类递归示例" class="headerlink" title="各类递归示例"></a>各类递归示例</h2><p>示例代码<a href="https://www.codeproject.com/KB/cpp/418776/RecursiveToLoopSamples.zip" target="_blank" rel="noopener">地址</a></p>
+<p>如果你看过这些源码，你会发现，里面包含递归和循环两个版本，其原因简单来说，循环版本是为了避免栈溢出，而递归版本则是为了阅读源码的人理解算法的意思。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我的观点是，当使用 C/C++ 或者 Java 时，必须非常小心的使用递归，避免栈的溢出异常，但是，在许多情况下，递归代码更容易理解，并且更加容易写出来，但缺点是容易造成栈溢出。所以，通过上述方法，将递归转换为循环，并不是为了提高代码可读性，也不是为了提高代码执行效率，而是通过一种简单的方式避免栈溢出。</p>
+<p>如前面所说，我更倾向于保存递归和循环两个版本代码，递归版本给人阅读，循环版本给计算机阅读，当你了解了这两种方式的利弊之后，可以选择使用哪种方式编写代码。</p>
+<p>最后附上英文原文地址:<a href="https://www.codeproject.com/Articles/418776/How-to-replace-recursive-functions-using-stack-and" target="_blank" rel="noopener">英文版</a></p>
+<p>以及原作者的个人 GitHub 库，其中包含部分示例：<a href="https://github.com/juhgiyo/EpLibrary/tree/gh-pages/EpLibrary2.0/EpLibrary/Headers" target="_blank" rel="noopener">地址</a></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/28/UguiPolyImage/" rel="next" title="UGUI 中实现多边形网格 Image">
+                <i class="fa fa-chevron-left"></i> UGUI 中实现多边形网格 Image
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/04/EffectiveMultiDisplay/" rel="prev" title="在Unity中实现多屏输出">
+                在Unity中实现多屏输出 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#递归和循环的优缺点"><span class="nav-number">1.</span> <span class="nav-text">递归和循环的优缺点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#替换递归的-10-个规则"><span class="nav-number">2.</span> <span class="nav-text">替换递归的 10 个规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-01"><span class="nav-number">2.1.</span> <span class="nav-text">规则 01</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-02"><span class="nav-number">2.2.</span> <span class="nav-text">规则 02</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-03"><span class="nav-number">2.3.</span> <span class="nav-text">规则 03</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-04"><span class="nav-number">2.4.</span> <span class="nav-text">规则 04</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-05"><span class="nav-number">2.5.</span> <span class="nav-text">规则 05</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-06"><span class="nav-number">2.6.</span> <span class="nav-text">规则 06</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-07"><span class="nav-number">2.7.</span> <span class="nav-text">规则 07</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-08"><span class="nav-number">2.8.</span> <span class="nav-text">规则 08</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-09"><span class="nav-number">2.9.</span> <span class="nav-text">规则 09</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#规则-10"><span class="nav-number">2.10.</span> <span class="nav-text">规则 10</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#各类递归示例"><span class="nav-number">3.</span> <span class="nav-text">各类递归示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

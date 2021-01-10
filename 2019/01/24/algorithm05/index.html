@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="数据结构与算法 - 分治策略前面介绍了一些复杂度分析方法，以及一些基础的数据结构，后续将会开始介绍一些常见算法和一些高级的数据结构，在介绍这些内容之前呢，首先需要先了解一下分治策略，分治策略只是为解决某些问题提供了指导思想，真正落到编码上的，其实是递归方法，因此可以认为递归是分治策略的一种实现手段。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法 - 分治策略">
+<meta property="og:url" content="https://huosk.github.io/2019/01/24/algorithm05/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="数据结构与算法 - 分治策略前面介绍了一些复杂度分析方法，以及一些基础的数据结构，后续将会开始介绍一些常见算法和一些高级的数据结构，在介绍这些内容之前呢，首先需要先了解一下分治策略，分治策略只是为解决某些问题提供了指导思想，真正落到编码上的，其实是递归方法，因此可以认为递归是分治策略的一种实现手段。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/01/24/algorithm05/Recursion.png">
+<meta property="og:image" content="https://huosk.github.io/2019/01/24/algorithm05/dumpli.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.755Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据结构与算法 - 分治策略">
+<meta name="twitter:description" content="数据结构与算法 - 分治策略前面介绍了一些复杂度分析方法，以及一些基础的数据结构，后续将会开始介绍一些常见算法和一些高级的数据结构，在介绍这些内容之前呢，首先需要先了解一下分治策略，分治策略只是为解决某些问题提供了指导思想，真正落到编码上的，其实是递归方法，因此可以认为递归是分治策略的一种实现手段。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/01/24/algorithm05/Recursion.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/01/24/algorithm05/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>数据结构与算法 - 分治策略 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/01/24/algorithm05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据结构与算法 - 分治策略
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-01-24 22:13:36" itemprop="dateCreated datePublished" datetime="2019-01-24T22:13:36+08:00">2019-01-24</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数据结构与算法/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="数据结构与算法-分治策略"><a href="#数据结构与算法-分治策略" class="headerlink" title="数据结构与算法 - 分治策略"></a>数据结构与算法 - 分治策略</h1><p>前面介绍了一些复杂度分析方法，以及一些基础的数据结构，后续将会开始介绍一些常见算法和一些高级的数据结构，在介绍这些内容之前呢，首先需要先了解一下分治策略，分治策略只是为解决某些问题提供了指导思想，真正落到编码上的，其实是递归方法，因此可以认为递归是分治策略的一种实现手段。</p>
+<a id="more"></a>
+<p>考虑这么一个情景，小A去电影院看电影，入座之后，小A想知道自己是第几排，但是灯光比较暗，不好一排排数，小A就问他前排，心想如果知道前排是第几，就能知道自己排数了。但是前排同样也不知道，他也问前一排，就这样一直问道第一排，它回复后面说自己在第一排，就这么一排排回复过去，最后小A就知道自己所在排数了。</p>
+<p>另一个比较常见的例子是阶乘的求解，我们知道：$!n = !(n-1) * n$，即 n 的阶乘等于 n-1 的阶乘乘以 n。</p>
+<p>这些都是分治策略的典型应用，采用分治法解决问题，包含以下三个步骤：</p>
+<ol>
+<li>分解：问题能够分解多个子问题，子问题的形式与原问题相同，只是规模更小。比如上面阶乘的例子，把 n 阶乘的问题，分解为 n-1 阶乘子问题；电影院例子中把“当前第几排”分解为“前排第几排”。这些子问题的特点都是规模在不断缩小。</li>
+<li>解决：当问题经过递归的分解之后，子问题规模已经足够小，可以终止递归，直接求解。上面电影院例子中，当到第一排之后，不需要再问前排；阶乘例子中，1的阶乘等于1，即分解到1之后就停止了。</li>
+<li>合并：子问题的解能够组合成原问题的解。先说电影院例子，知道前排结果之后，只需要+1就是所求结果；阶乘例子中，知道n-1阶乘之后，乘以n就是所求结果。</li>
+</ol>
+<h2 id="递归式"><a href="#递归式" class="headerlink" title="递归式"></a>递归式</h2><p>递归式是用来描述递归的，它通常是一个等式或者不等式。上面两个例子，我们可以用文字来描述分治的三个步骤，虽然很详细，但是还是不够直观，下面看看用递归式怎么描述？</p>
+<ul>
+<li>电影院：</li>
+</ul>
+<script type="math/tex; mode=display">
+\begin{aligned}
+    T(n) = \begin{cases}
+        1&(n=1)\\
+        T(n-1)+1&(n>1)\\
+    \end{cases}
+\end{aligned}</script><p>当前排问题 T(n)，可以分解为前排问题 T(n-1)，当递归到第一排时，不需要再进行递归，可以直接求解。</p>
+<ul>
+<li>阶乘：</li>
+</ul>
+<script type="math/tex; mode=display">
+\begin{aligned}
+    T(n)= \begin{cases}
+        1&(n=1)\\
+        T(n-1)*n&(n>1)\\
+    \end{cases}
+\end{aligned}</script><p>递归式是解决递归问题的关键，通过将主问题分解成多个规模更小的子问题，在编写递归函数时，可以认为子问题已经解决（第二步），不要企图在脑子里面一层一层的思考递归怎么执行，那样就会走进思维误区；把关注点放到子问题的分解和合并上（第一、三步），这样能够帮助我们轻松的编写递归代码。</p>
+<h2 id="几个例子"><a href="#几个例子" class="headerlink" title="几个例子"></a>几个例子</h2><h3 id="爬楼梯问题"><a href="#爬楼梯问题" class="headerlink" title="爬楼梯问题"></a>爬楼梯问题</h3><p>再看一个类似的例子，小A上楼要走 n 阶台阶，每一步只能走 1-2 阶，求小A 上楼有多少种走法。</p>
+<p>我们先使用暴力枚举法，看看如何解决该问题，这里直接上代码，还是比较容易理解。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Get_GoUpstairSitCnt</span><span class="params">(n)</span></span></span><br><span class="line">    <span class="comment">-- 存储各种走法所走的台阶数</span></span><br><span class="line">    <span class="comment">-- 初始时，第一步有两种走法：1阶、2阶</span></span><br><span class="line">    <span class="keyword">local</span> t = <span class="literal">nil</span></span><br><span class="line">    <span class="keyword">if</span> n &gt; <span class="number">1</span> <span class="keyword">then</span></span><br><span class="line">      t = &#123;<span class="number">1</span>,<span class="number">2</span>&#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      t = &#123;<span class="number">1</span>&#125;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">-- 每走一步，都分为两种情形，即都会增加一种情况</span></span><br><span class="line">    <span class="comment">-- 最多走的步数不会超过台阶数 n</span></span><br><span class="line">    <span class="keyword">for</span> i = <span class="number">1</span>,n <span class="keyword">do</span></span><br><span class="line">      <span class="keyword">local</span> allsituations = #t</span><br><span class="line">      <span class="keyword">for</span> j=<span class="number">1</span>,allsituations <span class="keyword">do</span></span><br><span class="line">        <span class="comment">-- 走 1 阶</span></span><br><span class="line">        <span class="keyword">if</span> t[j] &lt; n <span class="keyword">then</span></span><br><span class="line">          t[j] = t[j] + <span class="number">1</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">-- 走 2 阶</span></span><br><span class="line">        <span class="keyword">if</span> t[j] &lt; n <span class="keyword">then</span></span><br><span class="line">          <span class="built_in">table</span>.<span class="built_in">insert</span>(t,t[j]+<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">      <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> #t</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>暴力枚举法的时间复杂度具体的我们先不去关心，但是通过嵌套循环就知道复杂度不低，接着尝试用分治策略，看看能不能求解该问题。下面按照分支策略步骤一步步来分析。</p>
+<ol>
+<li>分解问题，要走 n 阶台阶，初始时能够确定的只有第一步的走法：1阶、2阶，走完第一步，那么剩下的怎么走呢，能够发现这个和主问题是一样的，只不过台阶减少了，即问题的规模变小了，因此可以采用递归来解决。通过上面分析，我们得到两个子问题：<ol>
+<li>第一步走 1 阶，剩余台阶的走法</li>
+<li>第一步走 2 阶，剩余台阶的走法</li>
+</ol>
+</li>
+<li>解决问题，上面两个问题都是采用递归来解决，解决递归就是要找到它的终止条件，考虑一下，什么时候递归可以停止呢？<ol>
+<li>剩余 1 阶，只有 1 种走法</li>
+<li>剩余 2 阶，只有 2 种走法</li>
+</ol>
+</li>
+<li>合并，将两种子问题结果相加，就是主问题的解。</li>
+</ol>
+<p>经过上面的分析，应该能够很容易的写出递归式了。</p>
+<script type="math/tex; mode=display">
+T(n)=\begin{cases}
+  1&(n=1)\\
+  2&(n=2)\\
+  T(n-1)+T(n-2)&(n>2)
+\end{cases}</script><p>有了递归式，代码就很容易写了：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">T</span><span class="params">(n)</span></span></span><br><span class="line">  <span class="keyword">if</span> n == <span class="number">1</span> <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line">  <span class="keyword">elseif</span> n==<span class="number">2</span> <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> T(n<span class="number">-1</span>)+T(n<span class="number">-2</span>)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h3 id="求解最大数组"><a href="#求解最大数组" class="headerlink" title="求解最大数组"></a>求解最大数组</h3><p>再看一个复杂一点的例子，一个包含正负元素的数组，求它的连续子数组中，元素求和值最大的子数组。例如下面一个数组：</p>
+<img src="/2019/01/24/algorithm05/Recursion.png">
+<p>解决这个问题的办法有很多，最简单暴力的方法，就是遍历各种可能性，然后查找最大值，代码如下：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--- Lua示例</span></span><br><span class="line"><span class="comment">--- 查找最大子数组</span></span><br><span class="line"><span class="comment">--- 因为 Lua 数组下标从 1 开始，所以输出的结果为：43、5、8</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Find_Max_Subarray</span><span class="params">(arr)</span></span></span><br><span class="line">  <span class="keyword">local</span> low,high</span><br><span class="line">  <span class="keyword">local</span> <span class="built_in">max</span> = <span class="built_in">math</span>.mininteger</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">local</span> sum = <span class="number">0</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> i = <span class="number">1</span>,#arr <span class="keyword">do</span></span><br><span class="line">    sum = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> j = i,#arr <span class="keyword">do</span></span><br><span class="line">      sum = sum + arr[j]</span><br><span class="line">      <span class="keyword">if</span> sum &gt; <span class="built_in">max</span> <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">max</span> = sum</span><br><span class="line">        low = i</span><br><span class="line">        high = j</span><br><span class="line">      <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">max</span>,low,high</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>这段代码的渐进复杂度为$T(n) = O(n^2)$，可以看到暴力枚举法的复杂度比较高，通过分治策略，看看能不能找到其他的解决办法。根据分治策略的执行步骤，我们尝试着来做一下：</p>
+<ol>
+<li>首先需要对问题进行分解，即缩小问题规模，我们可以简单的把数组均分，那么问题就变成了，如何在两个分数组中查找最大子数组。这里可以分为三种情况，可能在左侧分数组、可能在右侧分数组、可能跨越两个数组，考虑这三种情况，可以得到四个子问题：<ul>
+<li>在左侧分数组中，查找最大子数组</li>
+<li>在右侧分数组中，查找最大子数组</li>
+<li>跨越左右分数组，查找最大子数组</li>
+<li>比较前面三种问题的解，得到最优的解</li>
+</ul>
+</li>
+</ol>
+<p>在上面四个子问题中，前两种个和主问题相同，都是求一个数组的最大子数组，只不过数据规模变小了，可以采用递归来计算。</p>
+<ol>
+<li>第二步需要解决子问题，这里子问题有四个，但是前两是相同的。先考虑前两个子问题的怎么解决，随着问题规模不断的递归分解，最终需要求解的数组元素只有一个了，此时子问题已经足够简单，可以直接给出解，终止递归；第三个子问题是从两个数组中，找到横跨两个数组的最大数组，该子问题与主问题已经主问题不同了，所以这里就没有必要递归了，直接求解即可，代码见下；最后一个子问题，和主问题也不相同，所以直接求解。</li>
+<li>最后一步是合并，这一步比较简单，就是根据前三个子问题的解，在第四个子问题中进行比较，得出主问题的解。</li>
+</ol>
+<p>使用递归式描述如下：</p>
+<script type="math/tex; mode=display">
+T(arr,low,high)=\begin{cases}
+  arr[low]&(low = high)\\
+  max(T(arr,low,mid),
+  T(arr,mid,high),G(arr,low,mid,high))&(low < high,mid = \left \lfloor {(low + high)/2} \right \rfloor)
+\end{cases}</script><p>这里先给出第三个子问题的求解的 Lua 代码：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Find_Max_Cross_Subarray</span><span class="params">(arr,low,mid,high)</span></span></span><br><span class="line">  <span class="comment">-- 保存最大子数组的起始索引</span></span><br><span class="line">  <span class="keyword">local</span> left_index,right_index</span><br><span class="line">  <span class="keyword">local</span> leftMax = <span class="built_in">math</span>.mininteger</span><br><span class="line">  <span class="keyword">local</span> rightMax = <span class="built_in">math</span>.mininteger</span><br><span class="line">  </span><br><span class="line">  <span class="comment">-- 查找左侧最大子数组</span></span><br><span class="line">  <span class="keyword">local</span> sum = <span class="number">0</span></span><br><span class="line">  <span class="keyword">for</span> i = mid,low,<span class="number">-1</span> <span class="keyword">do</span></span><br><span class="line">    sum = sum + arr[i]</span><br><span class="line">    <span class="keyword">if</span> sum &gt; leftMax <span class="keyword">then</span></span><br><span class="line">      leftMax = sum</span><br><span class="line">      left_index = i</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">-- 查找右侧最大子数组</span></span><br><span class="line">  sum = <span class="number">0</span></span><br><span class="line">  <span class="keyword">for</span> i = mid+<span class="number">1</span>,high <span class="keyword">do</span></span><br><span class="line">    sum = sum + arr[i]</span><br><span class="line">    <span class="keyword">if</span> sum &gt; rightMax <span class="keyword">then</span></span><br><span class="line">      rightMax = sum</span><br><span class="line">      right_index = i</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">-- 合并两边</span></span><br><span class="line">  <span class="keyword">return</span> leftMax+rightMax,left_index,right_index</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>第三个子问题解决之后，因为前两个子问题与主问题相同，而最后一个子问题又需要前三个子问题的结果，所以这里就直接求解主问题，直接上 Lua 代码。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Find_Max_Subarray_Recursion</span><span class="params">(arr,low,high)</span></span></span><br><span class="line">  <span class="comment">-- 当递归不断执行，进行一段时间之后，数组只剩一个元素，此时不需要再进行递归，可以直接得出结果</span></span><br><span class="line">  <span class="keyword">if</span> low == high <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> arr[low],low,high</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="comment">-- 将数组分为左右两部分，即将问题分解为更小规模子问题</span></span><br><span class="line">    <span class="comment">-- 将中间值向下取整</span></span><br><span class="line">    <span class="keyword">local</span> mid = (low + high) // <span class="number">2</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">-- 左侧分数组求解</span></span><br><span class="line">    <span class="keyword">local</span> leftMax,leftLow,leftHigh = Find_Max_Subarray_Recursion(arr,low,mid)</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- 右侧分数组求解</span></span><br><span class="line">    <span class="keyword">local</span> rightMax,rightLow,rightHigh = Find_Max_Subarray_Recursion(arr,mid+<span class="number">1</span>,high)</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- 跨越左右分数组求解</span></span><br><span class="line">    <span class="keyword">local</span> crossMax,crossLow,crossHigh = Find_Max_Cross_Subarray(arr,low,mid,high)</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- 比较三种问题的解，得出最大子数组</span></span><br><span class="line">    <span class="keyword">if</span> leftMax &gt; rightMax <span class="keyword">and</span> leftMax &gt; crossMax <span class="keyword">then</span></span><br><span class="line">      <span class="keyword">return</span> leftMax,leftLow,leftHigh</span><br><span class="line">    <span class="keyword">elseif</span> rightMax &gt; leftMax <span class="keyword">and</span> rightMax &gt; crossMax <span class="keyword">then</span></span><br><span class="line">      <span class="keyword">return</span> rightMax,rightLow,rightHigh</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      <span class="keyword">return</span> crossMax,crossLow,crossHigh</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h2 id="递归中的重复计算问题"><a href="#递归中的重复计算问题" class="headerlink" title="递归中的重复计算问题"></a>递归中的重复计算问题</h2><p>还是看上面爬楼梯的例子，其中包含了很多重复的计算，随着 n 值的减小，重复的次数呈指数级递增，以 n = 6 为例，通过下面的图示，对重复计算有个直观了解。</p>
+<img src="/2019/01/24/algorithm05/dumpli.png">
+<p>从上图可以看出来，对 n = 2 计算了 5 次，n = 3 计算了 3 次，如果 n 增长到7，6结点下面的所有结点重复次数将会递增 1 倍，这种指数级的重复增长，是对资源的极大浪费，一个解决办法就是采用缓存，将计算过结果缓存起来，爬楼梯的例子修改如下：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> cache = &#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">T</span><span class="params">(n)</span></span></span><br><span class="line">  <span class="keyword">if</span> n == <span class="number">1</span> <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line">  <span class="keyword">elseif</span> n==<span class="number">2</span> <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> cache[n] ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> cache[n]</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">local</span> count = T(n<span class="number">-1</span>) + T(n<span class="number">-2</span>)</span><br><span class="line">  cache[n] = count</span><br><span class="line">  <span class="keyword">return</span> count</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h2 id="根据递归式计算时间复杂度"><a href="#根据递归式计算时间复杂度" class="headerlink" title="根据递归式计算时间复杂度"></a>根据递归式计算时间复杂度</h2><p>递归式的一个非常重要的应用，是用来计算递归算法的时间复杂度，在《算法导论》一书中介绍了三种根据递归式来计算时间复杂度的解法。分别是：</p>
+<ul>
+<li>代入法</li>
+<li>递归树法</li>
+<li>主方法求解递归式</li>
+</ul>
+<p>代入是首先要求对递归式的解作出猜测，然后将猜测的值代入递归式进行验证，所以这就要求计算着对数学公式比较敏感，否则比较难猜测出正确的解；递归树法是将递归过程，利用树形结构进行表示，然后通过观察树的结构，来对解作出猜测，再将猜测结果代入递归式进行验证；这里主要介绍第三种方法，通过递归式的主方法来进行求解。</p>
+<p>主方法求解是将递归式表示成如下形式：</p>
+<script type="math/tex; mode=display">
+T(n)=aT(n/b) + f(n)</script><p>以上递归式描述是这样的：将一个规模为 n 的问题分解为 a 个子问题，每个子问题的规模为 $n/b$，时间复杂度为 $T(n/b)$；$f(n)$是子问题分解、组合所花费的时间。</p>
+<blockquote>
+<p>需要注意的是，这里 $n/b$ 可能不为整数，但是替换成 $T(\left \lfloor n/b \right \rfloor)$或$T(\left \lceil n/b \right \rceil)$对渐进时间复杂度并不会产生影响，所以后续的计算都是忽略舍入问题的。</p>
+</blockquote>
+<p>主方法依赖于下面的主定理：</p>
+<p>令$a\geqslant{1}、b&gt;1$是常数，$f(n)$是函数。则对于递归式：</p>
+<script type="math/tex; mode=display">
+T(n)=aT(n/b)+f(n)</script><p>$T(n)$的渐进复杂度满足下面三种情况：</p>
+<script type="math/tex; mode=display">
+T(n)=\begin{cases}
+  \Theta(n^{\log_{b}^{a}})&f(n)=O(n^{\log_b^{a-\varepsilon}}),{\varepsilon}>0\\
+  \Theta(n^{\log_{b}^{a}}{\lg}n)&f(n)=\Theta(n^{\log_b^a})\\
+  \Theta(f(n))&f(n)={\Omega}(n^{\log_b^{a+\varepsilon}}),{\varepsilon}>0\\
+\end{cases}\\</script><p>主定理根据 $f(n)$ 与 $n^{\log_b^a}$ 的关系，分为三种情况，首先T(n)的渐进复杂度是由两者之间较大的值决定的，若 $n^{\log_b^a}$ 更大，则为第一种情况；若$f(n)$更大，则满足第3种情况；若两者值相当，则满足第2种情况，对 $n^{\log_b^a}$ 乘上一个对数因子。</p>
+<p>需要注意的是，f(n)与$n^{\log_b^a}$两者比较的是渐进界，对于两者的渐进界比较结果和多项式比较结果如果不一致，说明此时不在上面三种情况之中，因此此时就主定理就不再适用。</p>
+<p>通过两个例子，看看主方法怎么用。</p>
+<p>先看第一个例子：</p>
+<script type="math/tex; mode=display">
+T(n)=9T(n/3)+n</script><ul>
+<li>首先，对于这个递归式，可以知道$a=9,b=3,f(n)=n$</li>
+<li>然后，比较$f(n)=n$、$n^{\log_b^a}$=$n^{\log_3^9}$=$n^3$ 两者的渐进界，符合第一种情况，因此</li>
+</ul>
+<script type="math/tex; mode=display">
+T(n)=\Theta(n^{\log_{b}^{a}})=\Theta(n^{\log_3^9})=\Theta(n^2)</script><p>再看第二个例子：</p>
+<script type="math/tex; mode=display">
+T(n)=T(2n/3)+1</script><ul>
+<li>首先，根据递归式可知：$a=1,b=3/2,f(n)=1$</li>
+<li>然后，比较 $f(n)=1$ 和 $n^{\log_b^a}$ = $n^0$ = 1 比较两者的渐进界，满足第2种情况，因此:</li>
+</ul>
+<script type="math/tex; mode=display">
+T(n)=\Theta(n^{\log_{b}^{a}}{\lg}n)=\Theta(\lg{n})</script><blockquote>
+<p>关于主方法这部分内容，详细可以参考《算法导论》的第四章，里面给出了更加详细的介绍和证明。</p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/21/algorithm04/" rel="next" title="数据结构与算法 - 队列">
+                <i class="fa fa-chevron-left"></i> 数据结构与算法 - 队列
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/26/createinstancebyreflect/" rel="prev" title="C#中利用反射创建各种对象">
+                C#中利用反射创建各种对象 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构与算法-分治策略"><span class="nav-number">1.</span> <span class="nav-text">数据结构与算法 - 分治策略</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#递归式"><span class="nav-number">1.1.</span> <span class="nav-text">递归式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#几个例子"><span class="nav-number">1.2.</span> <span class="nav-text">几个例子</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#爬楼梯问题"><span class="nav-number">1.2.1.</span> <span class="nav-text">爬楼梯问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#求解最大数组"><span class="nav-number">1.2.2.</span> <span class="nav-text">求解最大数组</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#递归中的重复计算问题"><span class="nav-number">1.3.</span> <span class="nav-text">递归中的重复计算问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#根据递归式计算时间复杂度"><span class="nav-number">1.4.</span> <span class="nav-text">根据递归式计算时间复杂度</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>

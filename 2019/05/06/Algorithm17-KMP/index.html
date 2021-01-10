@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/logo/favicon_2.png?v=6.6.0">
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="在前面的文章中介绍了暴力匹配算法和 BM 算法，下面再介绍另一种匹配算法 - KMP 字符串匹配算法，之所以单独将它拿出来介绍，主要是它解释和理解起来都非常困难，为了更好的理解下面的内容，建议先看理解一下暴力匹配算法和 BM，这两者相对容易理解一些，可以当做一个预热。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法 - KMP字符串匹配算法">
+<meta property="og:url" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/index.html">
+<meta property="og:site_name" content="码了个球">
+<meta property="og:description" content="在前面的文章中介绍了暴力匹配算法和 BM 算法，下面再介绍另一种匹配算法 - KMP 字符串匹配算法，之所以单独将它拿出来介绍，主要是它解释和理解起来都非常困难，为了更好的理解下面的内容，建议先看理解一下暴力匹配算法和 BM，这两者相对容易理解一些，可以当做一个预热。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/KMP01.png">
+<meta property="og:image" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/KMP02.png">
+<meta property="og:image" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/KMP03.png">
+<meta property="og:image" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/KMP04.png">
+<meta property="og:image" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/KMP05.png">
+<meta property="og:image" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/KMP06.png">
+<meta property="og:image" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/KMP07.png">
+<meta property="og:updated_time" content="2021-01-01T01:20:04.811Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据结构与算法 - KMP字符串匹配算法">
+<meta name="twitter:description" content="在前面的文章中介绍了暴力匹配算法和 BM 算法，下面再介绍另一种匹配算法 - KMP 字符串匹配算法，之所以单独将它拿出来介绍，主要是它解释和理解起来都非常困难，为了更好的理解下面的内容，建议先看理解一下暴力匹配算法和 BM，这两者相对容易理解一些，可以当做一个预热。">
+<meta name="twitter:image" content="https://huosk.github.io/2019/05/06/Algorithm17-KMP/KMP01.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huosk.github.io/2019/05/06/Algorithm17-KMP/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>数据结构与算法 - KMP字符串匹配算法 | 码了个球</title>
+  
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-131018358-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-131018358-1');
+</script>
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?025fd95626c7c0bd0ddfffd29bef3d58";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码了个球</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">知易行难</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huosk.github.io/2019/05/06/Algorithm17-KMP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="SK">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/logo/logo.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码了个球">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">数据结构与算法 - KMP字符串匹配算法
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-06 22:41:14" itemprop="dateCreated datePublished" datetime="2019-05-06T22:41:14+08:00">2019-05-06</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-01-01 09:20:04" itemprop="dateModified" datetime="2021-01-01T09:20:04+08:00">2021-01-01</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数据结构与算法/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在前面的文章中介绍了暴力匹配算法和 BM 算法，下面再介绍另一种匹配算法 - KMP 字符串匹配算法，之所以单独将它拿出来介绍，主要是它解释和理解起来都非常困难，为了更好的理解下面的内容，建议先看理解一下暴力匹配算法和 BM，这两者相对容易理解一些，可以当做一个预热。</p>
+<a id="more"></a>
+<h2 id="KMP-匹配算法"><a href="#KMP-匹配算法" class="headerlink" title="KMP 匹配算法"></a>KMP 匹配算法</h2><p>KMP 算法和 BM 类似的是，两种算法那都是希望在出现不匹配字符时，能够尽可能多的向后进行滑动，这样就能有效的减少字符对比次数，从而降低时间复杂度，BM 的做法在前文已经介绍过了，下面来看下 KMP 是如何做的，先看下面一个例子：</p>
+<img src="/2019/05/06/Algorithm17-KMP/KMP01.png">
+<p>当遇到不匹配的字符时，就需要找到一种规律，能够向后滑动多个字符。或者有人可能想到直接将模式串，与不匹配字符的下一个位置对齐不就可以了，其实我在最初接触字符匹配算法时，也有这样的想法，但是这样可能会错过匹配项，比如下面的例子：</p>
+<img src="/2019/05/06/Algorithm17-KMP/KMP02.png">
+<p>思考一下为什么上面例子中，会错过匹配的子串呢？这是因为，<strong>在已匹配前缀字符串 H 中，其后缀 “ab”，同样属于模式串 P 的前缀，这就可能错过匹配值</strong>。</p>
+<p>好了，理解上面解释之后，最大滑动长度也就很清楚了，即将<em>模式串 P</em>滑动到，与<em>已匹配前缀H</em>的<strong>最长匹配后缀</strong>对齐，在上面例子中，就是将模式串与 H 后缀 “ab” 对齐：</p>
+<img src="/2019/05/06/Algorithm17-KMP/KMP03.png">
+<p>可以发现，整个滑动计算过程与主串没什么关系，这是因为我们处理的部分，是模式串与主串已经匹配的部分。既然如此，那么在进行匹配之前，我们能不能把匹配串 P 的所有前缀，以及前缀对应的最长匹配后缀处理好呢？</p>
+<p>在 KMP 算法中采用一个数组来存储前缀信息，这个数组称为<strong>失效数组</strong>，数组的下标表示前缀尾字符下标（模式串中的下标），数组的值表示，在该前缀字符串中，最长匹配前缀的尾字符下标（前缀中的下标）。文字描述费劲看着也累，还是上面的例子，直接看图下表：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">模式串前缀</th>
+<th style="text-align:left">前缀结尾字符下标</th>
+<th style="text-align:left">最长匹配前缀尾字符下标</th>
+<th style="text-align:left">数组</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">a</td>
+<td style="text-align:left">0</td>
+<td style="text-align:left">-1</td>
+<td style="text-align:left">next[0] = -1</td>
+</tr>
+<tr>
+<td style="text-align:left">ab</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left">-1</td>
+<td style="text-align:left">next[1] = -1</td>
+</tr>
+<tr>
+<td style="text-align:left">aba</td>
+<td style="text-align:left">2</td>
+<td style="text-align:left">0</td>
+<td style="text-align:left">next[2] = 0</td>
+</tr>
+<tr>
+<td style="text-align:left">abab</td>
+<td style="text-align:left">3</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left">next[3] = 1</td>
+</tr>
+<tr>
+<td style="text-align:left">ababc</td>
+<td style="text-align:left">4</td>
+<td style="text-align:left">-1</td>
+<td style="text-align:left">next[4] = -1</td>
+</tr>
+<tr>
+<td style="text-align:left">ababca</td>
+<td style="text-align:left">5</td>
+<td style="text-align:left">0</td>
+<td style="text-align:left">next[5] = 0</td>
+</tr>
+<tr>
+<td style="text-align:left">ababcab</td>
+<td style="text-align:left">6</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left">next[6] = 1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>那么这个 next 数组应该如何使用呢？还是看上面的例子，在模式串 P 的第 4 个字符出现不匹配，H 尾字符下标为 3，从表中可知 next[3] = 1，即 H 的前缀‘ab’与后缀‘ab’相同，因此，将模式串 P 前缀’ab’ 与 H 后缀’ab’对齐，相当于将 j 设置为 ‘ab’ 的下一个字符的下标，而改下标值等于 $next[3] + 1$。</p>
+<p>上面这个过程可能有一些绕，和 BM 算法直接滑动主串不同，这里是滑动模式串，先假设用 i 表示主串字符索引，j 表示匹配串索引，不管滑动主串还是模式串，都是要比较 M[i]、P[j]，因此滑动匹配串就是更新 j 的值。</p>
+<p>如果还是与有点不清楚，可以结合下面的 KMP 算法框架代码理解一下整个过程：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">IndexOf</span>(<span class="params"><span class="keyword">string</span> s, <span class="keyword">string</span> pat</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> N = s.Length;</span><br><span class="line">    <span class="keyword">int</span> M = pat.Length;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 模式串索引指针</span></span><br><span class="line">    <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 如果出现不匹配字符，则滑动模式串，直到 s[i]、pat[j] 匹配</span></span><br><span class="line">        <span class="keyword">while</span> (pat[j] != s[i] &amp;&amp; j &gt; <span class="number">0</span>)</span><br><span class="line">            j = next[j - <span class="number">1</span>] + <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果字符匹配，则继续检查主串和模式串下一个字符</span></span><br><span class="line">        <span class="keyword">if</span> (s[i] == pat[j])</span><br><span class="line">        &#123;</span><br><span class="line">            j++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (j == M)</span><br><span class="line">        &#123;<span class="comment">// 匹配成功</span></span><br><span class="line">            <span class="keyword">return</span> i - M + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为什么模式串滑动要在 while 循环中，这是因为根据 next 数组进行滑动之后，s[i] 和 pat[j] 可能仍然不匹配，因此需要不断滑动，直到 s[i] 和 pat[j] 匹配，或者重新从匹配串起始进行匹配，具体过程见下图：</p>
+<img src="/2019/05/06/Algorithm17-KMP/KMP04.png">
+<h2 id="失效数组计算"><a href="#失效数组计算" class="headerlink" title="失效数组计算"></a>失效数组计算</h2><p>上面已经理解了怎么用 next 数组，下面一个重要问题就是怎么计算 next 数组，还是以模式串‘ababcab’为例，比如要计算 next[3] 的值，最粗暴的方法时找到所有的前缀，然后逐一检查是否有对应后缀与之匹配，next[3] 对应的子串为 ‘abab’：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">前缀</th>
+<th style="text-align:left">匹配后缀</th>
+<th style="text-align:left">前缀尾字符索引</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">aba</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+<tr>
+<td style="text-align:left">ab</td>
+<td style="text-align:left">ab</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td style="text-align:left">a</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>可以看到最长的匹配后缀为‘ab’，因此 next[3] = 1。这样的计算方式比较低效，原因在于当我们计算 next[4] 时，对于 next[3] 中计算的需要重新计算一遍，所以算法优化的重点在于如何根据 next[k-1] 计算 next[k] 的值。</p>
+<p>根据 next[k-1] 计算 next[k] 分为以下几种情况:</p>
+<p>首先说第一种情况，next[k-1]最长匹配前缀尾字符索引为 i，如果 next[k] 与 next[i+1] 匹配，此时 next[k] 的最长匹配的前缀尾字符索引为 $i+1$，还是看下面例子：</p>
+<img src="/2019/05/06/Algorithm17-KMP/KMP05.png">
+<p>上面的情况还算比较简单，但是当 next[k] 和 next[i+1] 不相等时，情况就变得比较复杂了，还是以模式串‘abcababcab’为例，来看下应该如何处理这种情况：</p>
+<img src="/2019/05/06/Algorithm17-KMP/KMP06.png">
+<p>next 失效数组为:</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">前缀</th>
+<th style="text-align:left">匹配后缀</th>
+<th style="text-align:left">前缀尾字符索引</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">abcababca</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+<tr>
+<td style="text-align:left">abcababc</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+<tr>
+<td style="text-align:left">abcabab</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+<tr>
+<td style="text-align:left">abcaba</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+<tr>
+<td style="text-align:left">abcab</td>
+<td style="text-align:left">abcab</td>
+<td style="text-align:left">4</td>
+</tr>
+<tr>
+<td style="text-align:left">abca</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+<tr>
+<td style="text-align:left">abc</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+<tr>
+<td style="text-align:left">ab</td>
+<td style="text-align:left">ab</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td style="text-align:left">a</td>
+<td style="text-align:left">/</td>
+<td style="text-align:left">-1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>当下一个字符为 ‘c’ 时，如下图所示：</p>
+<img src="/2019/05/06/Algorithm17-KMP/KMP07.png">
+<p>因为’a’、‘c’ 不匹配，所以不能像上面情况那样进行处理，即最长匹配后缀不是‘abcab’+‘c’，因此就需要考虑次长匹配后缀，从上面表中可知，次长匹配后缀为 ‘ab’，而‘ab’的下一个字符也是‘c’，所以 next[11] 的最长匹配后缀为 ‘abc’。</p>
+<p>我们不能根据查表来获取次长匹配后缀，因此，下面问题就是如何找到次长匹配后缀，这里需要理解两点：</p>
+<ol>
+<li>次长匹配后缀属于最长匹配后缀的一部分；</li>
+<li>最长匹配前缀、最长匹配后缀两者是相同的。</li>
+</ol>
+<p>基于以上两点，查找次长匹配后缀，就等价于从最长匹配后缀中，找出其最长匹配后缀，这样问题就变成了递归查找最长匹配后缀。这句话理解起来可能有点绕，还是继续上面的例子，最长匹配后缀为’abcab’，该字符串的最长匹配后缀为‘ab’。</p>
+<p>可以配合下面代码理解一下上面两种情况的处理：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span>[] <span class="title">GetNexts</span>(<span class="params"><span class="keyword">string</span> s, <span class="keyword">int</span> m</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">int</span>[] nexts = <span class="keyword">new</span> <span class="keyword">int</span>[m];</span><br><span class="line">   nexts[<span class="number">0</span>] = <span class="number">-1</span>;</span><br><span class="line">   <span class="keyword">int</span> k = <span class="number">-1</span>;</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">while</span> (k != <span class="number">-1</span> &amp;&amp; s[k + <span class="number">1</span>] != s[i])</span><br><span class="line">       &#123;</span><br><span class="line">           k = nexts[k];</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (s[k + <span class="number">1</span>] == s[i])</span><br><span class="line">           k++;</span><br><span class="line"></span><br><span class="line">       nexts[i] = k;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> nexts;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>KMP 算法解释和理解起来确实非常困难，在理解过程中，可以动手画画来辅助理解。KMP 算法的空间复杂度为 O(M)，其中 M 为模式串长度；而时间复杂度分为O(M+N)，其中 M 为模式串长度，N 为主串长度。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/22/Algorithm16-Trie/" rel="next" title="数据结构与算法 - 单词查找树">
+                <i class="fa fa-chevron-left"></i> 数据结构与算法 - 单词查找树
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/18/Algorithm18-AhoCorasick/" rel="prev" title="数据结构与算法 - AC 自动机">
+                数据结构与算法 - AC 自动机 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div id="gitalk-container">
+    </div>
+    
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/logo/logo.png" alt="SK">
+            
+              <p class="site-author-name" itemprop="name">SK</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">52</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/huosk" title="GitHub &rarr; https://github.com/huosk" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                  
+                    
+                  
+                  <a href="mailto:huoshaokai@gmail.com" title="E-Mail &rarr; mailto:huoshaokai@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#KMP-匹配算法"><span class="nav-number">1.</span> <span class="nav-text">KMP 匹配算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#失效数组计算"><span class="nav-number">2.</span> <span class="nav-text">失效数组计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">SK</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=66131322";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+        
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1.0.0/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.6.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.min.js"></script>
+
+  
+  
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1.4.0/dist/gitalk.css">
+
+  
+  
+  <script type="text/javascript" src="//cdn.jsdelivr.net/npm/js-md5@0.7.3/src/md5.min.js"></script>
+    
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '87dbe11d8ff7a7e2f01b',
+          clientSecret: '14e8369b494597775860117411e1fe9ed5b4db89',
+          repo: 'huosk.github.io',
+          owner: 'huosk',
+          admin: ['huosk'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<style>
+.MathJax_Display {
+    overflow: auto hidden;
+}
+</style>
+
+    
+  
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+    
+  
+  <script src="https://cdn.jsdelivr.net/gh/theme-next/theme-next-bookmark@1.0.2/bookmark.min.js"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+  
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.1/viz.js"></script>
+  <script>
+    String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    let vizObjects = document.querySelectorAll('.graphviz')
+
+    for (let item of vizObjects) {
+      let svg = undefined
+      try {
+        svg = Viz(item.textContent.replaceAll('–', '--'), 'svg')
+      } catch(e) {
+        svg = `<pre class="error">${e}</pre>`
+      }
+      item.outerHTML = svg
+    }
+  </script>
+
+</body>
+</html>
